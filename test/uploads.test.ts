@@ -32,6 +32,17 @@ class DB extends LocalDB {
   }
 }
 
+class MultiWorkspaceDB extends LocalDB {
+  async prepareUpload(file: string): Promise<UploadResponse> {
+    return {
+      entryId: file,
+      location: file,
+      previewUrl: `preview/${file}`,
+      url: `https://uploads.alinea.test/${file}`
+    }
+  }
+}
+
 function cmsWithMediaDir(
   mediaDir?: string,
   mediaUrl?: string,
@@ -93,6 +104,53 @@ test('upload urls keep default public mediaDir out of image URLs', async () => {
 test('upload urls keep nested mediaDir out of image URLs by default', async () => {
   const src = await queryUploadedImageSrc('/public/media')
   test.is(src, '/example.jpg_upload-1')
+})
+
+test('upload stores public location for nested workspace media dirs', async () => {
+  const mainWorkspace = Config.workspace('Main', {
+    source: 'content/main',
+    mediaDir: 'public',
+    roots: {
+      pages: Config.root('Pages', {contains: [Page]}),
+      media: Config.media()
+    }
+  })
+  const regio = Config.workspace('Regio', {
+    source: 'content/regio',
+    mediaDir: 'public/regio',
+    roots: {
+      pages: Config.root('Pages', {contains: [Page]}),
+      media: Config.media()
+    }
+  })
+  const cms = createCMS({
+    schema: {Page},
+    workspaces: {main: mainWorkspace, regio}
+  })
+  const db = new MultiWorkspaceDB(cms.config)
+  const fetch = globalThis.fetch
+  globalThis.fetch = Object.assign(
+    async () => new Response(null, {status: 204}),
+    {preconnect: fetch.preconnect}
+  )
+
+  try {
+    const uploadRegio = await db.upload({
+      file: example,
+      workspace: 'regio',
+      createPreview
+    })
+    test.is(uploadRegio.location, '/regio/example.jpg')
+
+    const uploadMain = await db.upload({
+      file: example,
+      workspace: 'main',
+      createPreview
+    })
+    test.is(uploadMain.location, '/example.jpg')
+  } finally {
+    globalThis.fetch = fetch
+  }
 })
 
 test('upload urls use configured mediaUrl', async () => {

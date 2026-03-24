@@ -6,7 +6,11 @@ import {createId} from '#/core/Id.js'
 import {getRoot, getWorkspace} from '#/core/Internal.js'
 import {ListRow} from '#/core/ListRow.js'
 import {Type} from '#/core/Type.js'
-import {entryUrl, pathSuffix} from '#/core/util/EntryFilenames.js'
+import {
+  entryUrl,
+  pathSuffix,
+  workspaceMediaFile
+} from '#/core/util/EntryFilenames.js'
 import {
   generateKeyBetween,
   generateNKeysBetween
@@ -203,8 +207,9 @@ export class EntryTransaction {
       const prevLocation = prev.data.location
       if (prevLocation !== data.location)
         this.removeFile({
-          location: paths.join(
-            getWorkspace(this.#config.workspaces[prev.workspace]).mediaDir,
+          location: workspaceMediaFile(
+            this.#config,
+            prev.workspace,
             prev.data.location as string
           )
         })
@@ -913,8 +918,6 @@ export class EntryTransaction {
         this.#tx.remove(entry.childrenDir)
       }
       if (entry.type === 'MediaLibrary') {
-        const workspace = this.#config.workspaces[entry.workspace]
-        const mediaDir = getWorkspace(workspace).mediaDir
         // Find all files within children
         const files = index.findMany(f => {
           return (
@@ -926,16 +929,19 @@ export class EntryTransaction {
         })
         for (const file of files) {
           this.removeFile({
-            location: paths.join(mediaDir, file.data.location as string)
+            location: workspaceMediaFile(
+              this.#config,
+              entry.workspace,
+              file.data.location as string
+            )
           })
         }
       }
       if (entry.type === 'MediaFile') {
-        const workspace = this.#config.workspaces[entry.workspace]
-        const mediaDir = getWorkspace(workspace).mediaDir
         this.removeFile({
-          location: paths.join(
-            mediaDir,
+          location: workspaceMediaFile(
+            this.#config,
+            entry.workspace,
             (<Entry<MediaFile>>entry).data.location
           )
         })
