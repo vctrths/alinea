@@ -1,21 +1,15 @@
-import {Button} from '@alinea/components'
+import {Button, Modal} from '@alinea/components'
 import {useAtomValue, useSetAtom} from 'jotai'
 import {startTransition, useState} from 'react'
 import {ExplorerOptions, useDashboard} from '../store.js'
 import {Explorer} from './Explorer.js'
-import {
-  Sheet,
-  SheetContent,
-  SheetDialog,
-  SheetFooter,
-  useSheet
-} from './ui/Sheet.js'
+import {SheetContent, SheetDialog, SheetFooter, useSheet} from './ui/Sheet.js'
 
 export function LinkPicker(options: ExplorerOptions) {
   return (
-    <Sheet>
+    <Modal isDismissable>
       <ExplorerSheet options={options} />
-    </Sheet>
+    </Modal>
   )
 }
 
