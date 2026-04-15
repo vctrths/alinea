@@ -1,7 +1,15 @@
 import {Button, Icon, Tab, TabList, TabPanel, Tabs} from '@alinea/components'
 import {styler} from '@alinea/styler'
+import {IcRoundArrowForward} from 'alinea/ui/icons/IcRoundArrowForward.js'
+import IcRoundRefresh from 'alinea/ui/icons/IcRoundRefresh.js'
 import {useAtom, useAtomValue} from 'jotai'
-import {IcRoundHistory, IcRoundVisibility} from '../icons.js'
+import {
+  IcRoundArrowBack,
+  IcRoundHistory,
+  IcRoundKeyboardTab,
+  IcRoundLaunch,
+  IcRoundVisibility
+} from '../icons.js'
 import {DashboardEntry} from '../store.js'
 import css from './EntrySidebar.module.css'
 import {Sidebar, SidebarBody, SidebarHeader} from './ui/Sidebar.js'
@@ -20,7 +28,13 @@ export function EntrySidebar({entry}: EntrySidebarProps) {
   return (
     <Sidebar>
       <Tabs defaultSelectedKey="history" variant="subtle">
-        <SidebarHeader>
+        <SidebarHeader className={styles.tabControls()}>
+          <Button
+            size="icon"
+            intent="secondary"
+            appearance="outline"
+            icon={IcRoundKeyboardTab}
+          />
           <TabList aria-label="Entry sidebar">
             <Tab id="history">
               <Icon icon={IcRoundHistory} />
@@ -50,7 +64,7 @@ export function EntrySidebar({entry}: EntrySidebarProps) {
                       {selectedVersion.type === 'status' &&
                       selectedVersion.status === status
                         ? 'selected'
-                        : ''}{' '}
+                        : ''}
                       {isEditing ? 'editing' : ''}
                     </Button>
                   </li>
@@ -58,7 +72,36 @@ export function EntrySidebar({entry}: EntrySidebarProps) {
               })}
             </ul>
           </TabPanel>
-          <TabPanel id="preview">Preview placeholder</TabPanel>
+          <TabPanel id="preview">
+            <SidebarHeader>
+              <div className={styles.previewControls()}>
+                <Button
+                  size="icon"
+                  appearance="outline"
+                  intent="secondary"
+                  icon={IcRoundArrowBack}
+                />
+                <Button
+                  size="icon"
+                  appearance="outline"
+                  intent="secondary"
+                  icon={IcRoundArrowForward}
+                />
+                <Button
+                  size="icon"
+                  appearance="outline"
+                  intent="secondary"
+                  icon={IcRoundRefresh}
+                />
+              </div>
+              <Button
+                size="icon"
+                appearance="outline"
+                intent="secondary"
+                icon={IcRoundLaunch}
+              />
+            </SidebarHeader>
+          </TabPanel>
         </SidebarBody>
       </Tabs>
     </Sidebar>

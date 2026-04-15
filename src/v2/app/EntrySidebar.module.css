@@ -1,0 +1,8 @@
+.tabControls {
+  align-items: center;
+}
+
+.previewControls {
+  display: flex;
+  gap: 8px;
+}
