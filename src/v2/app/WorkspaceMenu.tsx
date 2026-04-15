@@ -4,34 +4,67 @@ import {
   Icon as IconComp,
   Menu,
   MenuItem,
-} from "@alinea/components";
-import styler from "@alinea/styler";
-import { IcRoundUnfoldMore } from "alinea/ui/icons/IcRoundUnfoldMore.js";
-import { useAtom, useAtomValue } from "jotai";
-import { IcAlineaLogo, IcRoundSearch } from "../icons.js";
-import type { Dashboard, DashboardWorkspace } from "../store/Dashboard.js";
-import css from "./WorkspaceMenu.module.css";
-import { Sheet } from "./ui/Sheet.js";
+  Modal
+} from '@alinea/components'
+import styler from '@alinea/styler'
+import IcOutlineSettings from 'alinea/ui/icons/IcOutlineSettings.js'
+import {IcRoundUnfoldMore} from 'alinea/ui/icons/IcRoundUnfoldMore.js'
+import {useAtom, useAtomValue} from 'jotai'
+import {useState} from 'react'
+import {IcAlineaLogo, IcRoundSearch} from '../icons.js'
+import {useDashboard} from '../store.js'
+import type {Dashboard, DashboardWorkspace} from '../store/Dashboard.js'
+import {Explorer} from './Explorer.js'
+import css from './WorkspaceMenu.module.css'
 
-const styles = styler(css);
+const styles = styler(css)
 
 interface WorkspaceMenuProps {
-  dashboard: Dashboard;
+  dashboard: Dashboard
 }
 
-export function WorkspaceMenu({ dashboard }: WorkspaceMenuProps) {
-  const [selected, setSelected] = useAtom(dashboard.selectedWorkspace);
-  const workspaces = useAtomValue(dashboard.workspaces);
-  const workspace = dashboard.workspace(selected);
-  const color = useAtomValue(workspace.color);
-  const Icon = useAtomValue(workspace.icon) ?? IcAlineaLogo;
-  const label = useAtomValue(workspace.label);
+function SearchPopup() {
+  const dashboard = useDashboard()
+  const workspace = useAtomValue(dashboard.selectedWorkspace)
+  const root = useAtomValue(dashboard.selectedRoot)
+  const [explorer] = useState(() => dashboard.explore({workspace, root}))
+
+  return (
+    <div style={{padding: '8px 12px', borderRadius: '6px'}}>
+      {/* Header */}
+      {/* <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+        <Button
+          icon={IcRoundFilterList}
+          size="square-petite"
+          appearance="outline"
+          intent="secondary"
+        />
+        <Button
+          icon={IcRoundClose}
+          size="square-petite"
+          appearance="outline"
+          intent="secondary"
+        />
+      </div> */}
+      {/* Content */}
+      <div>
+        <Explorer explorer={explorer} />
+      </div>
+      {/* Footer */}
+    </div>
+  )
+}
+
+export function WorkspaceMenu({dashboard}: WorkspaceMenuProps) {
+  const [selected, setSelected] = useAtom(dashboard.selectedWorkspace)
+  const workspaces = useAtomValue(dashboard.workspaces)
+  const workspace = dashboard.workspace(selected)
+  const color = useAtomValue(workspace.color)
+  const Icon = useAtomValue(workspace.icon) ?? IcAlineaLogo
+  const label = useAtomValue(workspace.label)
   return (
     <div className={styles.parent()}>
-      <span
-        className={styles.triggerAvatar()}
-        style={{ backgroundColor: color }}
-      >
+      <span className={styles.triggerAvatar()} style={{backgroundColor: color}}>
         <Icon />
       </span>
 
@@ -49,35 +82,41 @@ export function WorkspaceMenu({ dashboard }: WorkspaceMenuProps) {
         aria-label="Workspace"
         selectionMode="single"
         selectedKeys={[selected]}
-        onAction={(key) => setSelected(String(key))}
+        onAction={key => setSelected(String(key))}
       >
-        {workspaces.map((workspace) => (
+        {workspaces.map(workspace => (
           <WorkspaceItem
             key={workspace}
             workspace={dashboard.workspace(workspace)}
           />
         ))}
+        <MenuItem key="manage">
+          <IcOutlineSettings />
+          Manage members
+        </MenuItem>
       </Menu>
       <DialogTrigger>
         <Button size="icon" appearance="outline">
           <IconComp icon={IcRoundSearch} data-slot="icon" />
         </Button>
-        <Sheet></Sheet>
+        <Modal isDismissable>
+          <SearchPopup />
+        </Modal>
       </DialogTrigger>
     </div>
-  );
+  )
 }
 
 interface WorkspaceItemProps {
-  workspace: DashboardWorkspace;
+  workspace: DashboardWorkspace
 }
 
-function WorkspaceItem({ workspace }: WorkspaceItemProps) {
-  const id = workspace.key;
-  const label = useAtomValue(workspace.label);
+function WorkspaceItem({workspace}: WorkspaceItemProps) {
+  const id = workspace.key
+  const label = useAtomValue(workspace.label)
   return (
     <MenuItem key={id} id={id} textValue={label}>
       {label}
     </MenuItem>
-  );
+  )
 }
