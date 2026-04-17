@@ -8,6 +8,16 @@
   gap: 12px;
 }
 
+.ListFieldView-drag-preview {
+  padding: 10px 12px;
+  border: 1px solid var(--alinea-border-color);
+  border-radius: 10px;
+  background: var(--alinea-background, #fff);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+  font-size: 13px;
+  font-weight: 500;
+}
+
 .ListFieldView-create {
   display: flex;
   flex-wrap: wrap;
@@ -23,20 +33,40 @@
   font-size: 14px;
 }
 
-.ListFieldRow {
-  display: grid;
+.ListFieldView-drag-preview {
+  background-color: red;
 }
 
-.row + .row {
+.ListFieldRow {
+  display: grid;
+
+  &[data-dragging] {
+    opacity: 0.5;
+  }
+
+  &[data-drop-target] {
+    background-color: aqua;
+  }
+}
+
+:global(.react-aria-DropIndicator) + .ListFieldRow {
+  border-top: 1px solid blue;
+}
+
+.ListField-DragPreview {
+  padding: 8px 12px;
+}
+
+.ListFieldRow + .ListFieldRow {
   border-top: 1px solid var(--alinea-border-color);
 }
 
-.header {
+.ListFieldRow-header {
   justify-content: flex-start;
   gap: 8px;
 }
 
-.leading {
+.ListFieldRow-leading {
   display: inline-flex;
   align-items: center;
   color: #22303d;
@@ -54,6 +84,11 @@
   gap: 8px;
 }
 
+.ListFieldRow-drag {
+  min-width: 36px;
+  padding: 0 10px;
+}
+
 .ListFieldRow-action {
   min-width: 36px;
   padding: 0 10px;
@@ -67,19 +102,4 @@
   display: grid;
   gap: 12px;
   align-items: normal;
-}
-
-.create {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.empty {
-  padding: 8px;
-  border: 1px dashed #d8e1eb;
-  border-radius: 12px;
-  color: #5d6b79;
-  background: #fbfcfe;
-  font-size: 14px;
 }

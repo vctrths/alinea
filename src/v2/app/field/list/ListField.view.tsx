@@ -11,7 +11,8 @@ import {
   IcRoundAdd,
   IcRoundArrowDownward,
   IcRoundArrowUpward,
-  IcRoundDelete
+  IcRoundDelete,
+  IcRoundDragIndicator
 } from '#/v2/icons.js'
 import {ReactiveNode} from '#/v2/store/Dashboard.js'
 import {
@@ -22,8 +23,15 @@ import {
 } from '#/v2/store/hooks.js'
 import {Button, Icon, Label} from '@alinea/components'
 import styler from '@alinea/styler'
+import type {DragItem} from '@react-types/shared'
 import {useAtomValue, useSetAtom} from 'jotai'
 import {useMemo} from 'react'
+import {
+  type Key,
+  GridList,
+  GridListItem,
+  useDragAndDrop
+} from 'react-aria-components'
 import {Box, BoxContent, BoxHeader, BoxRow} from '../../Box'
 import css from './ListField.module.css'
 
@@ -35,6 +43,15 @@ interface ListValue {
   [key: string]: unknown
 }
 
+interface ListFieldItem {
+  id: string
+  index: number
+  row: ReactiveNode<ListValue>
+  typeName: string
+}
+
+const LIST_FIELD_ROW_DRAG_TYPE = 'application/x-alinea-list-field-row-id'
+
 export interface ListFieldViewProps {
   field: CoreListField<ListRow, ListValue, ListOptions<Schema>>
 }
@@ -43,6 +60,7 @@ export function ListFieldView({field}: ListFieldViewProps) {
   const options = useFieldOptions(field) as ListOptions<Schema>
   const error = useFieldError(field)
   const list = useFieldNode(field) as ReactiveNode<Array<ListValue>>
+  const rows = useAtomValue(list.value) as Array<ListValue>
   const nodes = useNodes(list) as Array<ReactiveNode<ListValue>>
   const setRows = useSetAtom(list.value)
   const schemaEntries = useMemo(
@@ -50,7 +68,62 @@ export function ListFieldView({field}: ListFieldViewProps) {
     [options.schema]
   )
   const readOnly = Boolean(options.readOnly)
-  const hasRows = nodes.length > 0
+  const hasRows = rows.length > 0
+  const items = useMemo(
+    () =>
+      rows.map((value, index) => ({
+        id: value._id,
+        index,
+        row: nodes[index],
+        typeName: value._type
+      })),
+    [nodes, rows]
+  )
+
+  function reorderRows(
+    current: Array<ListValue>,
+    keys: Set<Key>,
+    target: {key: Key; dropPosition: 'before' | 'after' | 'on'}
+  ) {
+    if (target.dropPosition === 'on') return current
+    if (keys.size === 0 || keys.has(target.key)) return current
+    const moving = current.filter(row => keys.has(row._id))
+    if (moving.length === 0) return current
+    const remaining = current.filter(row => !keys.has(row._id))
+    let targetIndex = remaining.findIndex(row => row._id === String(target.key))
+    if (targetIndex === -1) return current
+    if (target.dropPosition === 'after') targetIndex += 1
+    remaining.splice(targetIndex, 0, ...moving)
+    return remaining
+  }
+
+  function getItems(keys: Set<Key>): Array<DragItem> {
+    return [...keys].map(key => {
+      const id = String(key)
+      const item = items.find(i => i.id === id)
+      return {
+        'text/plain': id,
+        [LIST_FIELD_ROW_DRAG_TYPE]: id,
+        typeName: item?.typeName
+      }
+    })
+  }
+
+  const {dragAndDropHooks} = useDragAndDrop<ListFieldItem>({
+    getItems,
+    onReorder(event) {
+      setRows(current => reorderRows(current, event.keys, event.target))
+    },
+    renderDragPreview(items) {
+      const labels = items.map(item => {
+        console.log(item)
+        const type = options.schema[item.typeName]
+        return type ? Type.label(type) : 'no type'
+      })
+      const holdLabel = labels[0] || labels.join(', ')
+      return <Box className={styles.ListField.DragPreview()}>{holdLabel}</Box>
+    }
+  })
 
   function addRow(typeName: string, type: Schema[string]) {
     setRows(current => {
@@ -69,22 +142,31 @@ export function ListFieldView({field}: ListFieldViewProps) {
 
   const content =
     hasRows || !readOnly ? (
-      <Box className={styles.rowsBox()} role="list">
+      <Box className={styles.rowsBox()}>
         <BoxRow>
           <BoxHeader>{options.label}</BoxHeader>
         </BoxRow>
         {hasRows ? (
-          nodes.map((row, index) => (
-            <ListFieldRow
-              index={index}
-              key={index}
-              list={list}
-              readOnly={readOnly}
-              row={row}
-              rows={nodes.length}
-              schema={options.schema}
-            />
-          ))
+          <GridList
+            aria-label={options.label || 'List items'}
+            items={items}
+            className={styles.rows()}
+            dragAndDropHooks={readOnly ? undefined : dragAndDropHooks}
+            selectionMode="none"
+          >
+            {item => (
+              <ListFieldRow
+                index={item.index}
+                itemId={item.id}
+                key={item.id}
+                list={list}
+                readOnly={readOnly}
+                row={item.row}
+                rows={rows.length}
+                schema={options.schema}
+              />
+            )}
+          </GridList>
         ) : (
           <BoxContent>
             <div className={styles.empty()}>No items yet.</div>
@@ -121,6 +203,7 @@ export function ListFieldView({field}: ListFieldViewProps) {
 
 interface ListFieldRowProps {
   index: number
+  itemId: string
   list: ReactiveNode<Array<ListValue>>
   readOnly: boolean
   row: ReactiveNode<ListValue>
@@ -130,6 +213,7 @@ interface ListFieldRowProps {
 
 function ListFieldRow({
   index,
+  itemId,
   list,
   readOnly,
   row,
@@ -162,17 +246,27 @@ function ListFieldRow({
   }
 
   return (
-    <section
-      aria-label={`${label} item ${index + 1}`}
+    <GridListItem
+      id={itemId}
+      textValue={`${label} ${index + 1}`}
       className={styles.ListFieldRow()}
-      role="listitem"
     >
       <BoxRow className={styles.ListFieldRow.header()}>
         <BoxHeader className={styles.ListFieldRow.leading()}>
           <Icon aria-hidden icon={icon} />
-          <strong className={styles.title()}>{label}</strong>
+          <strong className={styles.ListFieldRow.title()}>{label}</strong>
         </BoxHeader>
         <div className={styles.ListFieldRow.actions()}>
+          {!readOnly && (
+            <Button
+              slot="drag"
+              aria-label={`Drag ${label}`}
+              appearance="plain"
+              className={styles.ListFieldRow.drag()}
+            >
+              <Icon aria-hidden icon={IcRoundDragIndicator} />
+            </Button>
+          )}
           <Button
             aria-label={`Move ${label} up`}
             className={styles.ListFieldRow.action()}
@@ -206,6 +300,6 @@ function ListFieldRow({
           type={type}
         />
       </BoxContent>
-    </section>
+    </GridListItem>
   )
 }
