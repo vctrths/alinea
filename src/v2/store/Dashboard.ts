@@ -4,7 +4,9 @@ import type {LocalConnection} from 'alinea/core/Connection'
 import {IndexEvent} from 'alinea/core/db/IndexEvent'
 import type {WriteableGraph} from 'alinea/core/db/WriteableGraph'
 import {Entry, EntryStatus} from 'alinea/core/Entry'
+import {EntryFields} from 'alinea/core/EntryFields.js'
 import {Field, FieldOptions} from 'alinea/core/Field'
+import {Filter} from 'alinea/core/Filter.js'
 import type {Order} from 'alinea/core/Graph'
 import {getRoot, getType, getWorkspace} from 'alinea/core/Internal'
 import {Section} from 'alinea/core/Section'
@@ -356,6 +358,7 @@ export interface DashboardMenuItem {
 export interface ExplorerOptions {
   selectionMode?: 'single' | 'multiple'
   selectionBehavior?: 'toggle' | 'replace'
+  filter?: Filter<EntryFields>
   initialSelection?: Array<string>
   onAction?: WritableAtom<void, [entry: DashboardEntry], void>
   onConfirm?: (selection: Array<string>) => void
@@ -466,6 +469,7 @@ export class DashboardExplorer {
         workspace: location.workspace,
         root: location.root,
         parentId: location.parentId ?? null,
+        filter: this.#options.filter,
         select: Entry.id,
         status: 'preferDraft'
       })

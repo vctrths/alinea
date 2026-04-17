@@ -221,6 +221,7 @@ function SingleImageDialog({field, children}: SingleLinkDialogProps) {
             _entry: selection[0]
           } satisfies EntryReference as Reference)
         }
+        filter={{_type: 'image'}}
       />
     </DialogTrigger>
   )
