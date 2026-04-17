@@ -359,6 +359,7 @@ export interface ExplorerOptions {
   selectionMode?: 'single' | 'multiple'
   selectionBehavior?: 'toggle' | 'replace'
   filter?: Filter<EntryFields>
+  autoFocus?: boolean
   initialSelection?: Array<string>
   onAction?: WritableAtom<void, [entry: DashboardEntry], void>
   onConfirm?: (selection: Array<string>) => void

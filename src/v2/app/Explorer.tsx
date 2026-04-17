@@ -1,3 +1,4 @@
+// oxlint-disable jsx_a11y/no-autofocus
 import {Button, SearchField} from '@alinea/components'
 import styler from '@alinea/styler'
 import {useAtom} from 'jotai'
@@ -11,13 +12,15 @@ const styles = styler(css)
 
 export interface ExplorerProps {
   explorer: DashboardExplorer
+  autoFocus?: boolean
 }
 
 interface ExplorerSearchProps {
   explorer: DashboardExplorer
+  autoFocus?: boolean
 }
 
-function ExplorerSearch({explorer}: ExplorerSearchProps) {
+function ExplorerSearch({explorer, autoFocus}: ExplorerSearchProps) {
   const [search, setSearch] = useAtom(explorer.search)
   return (
     <SearchField
@@ -25,6 +28,7 @@ function ExplorerSearch({explorer}: ExplorerSearchProps) {
       placeholder="Search..."
       value={search}
       onChange={setSearch}
+      autoFocus={autoFocus}
     />
   )
 }
@@ -53,13 +57,13 @@ function ExplorerToolbar({explorer}: ExplorerToolbarProps) {
   )
 }
 
-export function Explorer({explorer}: ExplorerProps) {
+export function Explorer({explorer, autoFocus}: ExplorerProps) {
   const [location, setLocation] = useAtom(explorer.location)
   return (
     <div className={styles.root()}>
       <LocationBreadcrumbs location={location} setLocation={setLocation} />
       <div className={styles.toolbar()}>
-        <ExplorerSearch explorer={explorer} />
+        <ExplorerSearch explorer={explorer} autoFocus={autoFocus} />
         <ExplorerToolbar explorer={explorer} />
       </div>
 

@@ -1,3 +1,4 @@
+// oxlint-disable jsx_a11y/no-autofocus
 import {Button, Modal} from '@alinea/components'
 import {Workspace} from 'alinea/core/Workspace'
 import {useAtomValue, useSetAtom} from 'jotai'
@@ -39,9 +40,9 @@ function ExplorerSheet({options}: ExplorerSheetProps) {
     })
   }
   return (
-    <SheetDialog label="Pick a link">
+    <SheetDialog label="Pick an image">
       <SheetContent>
-        <Explorer explorer={explorer} />
+        <Explorer explorer={explorer} autoFocus={true} />
       </SheetContent>
       <SheetFooter>
         <Button intent="secondary" onPress={sheet.close}>
