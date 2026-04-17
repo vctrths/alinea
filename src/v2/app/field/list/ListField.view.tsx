@@ -142,7 +142,7 @@ export function ListFieldView({field}: ListFieldViewProps) {
 
   const content =
     hasRows || !readOnly ? (
-      <Box className={styles.rowsBox()}>
+      <Box>
         <BoxRow>
           <BoxHeader>{options.label}</BoxHeader>
         </BoxRow>

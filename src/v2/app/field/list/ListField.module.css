@@ -39,18 +39,22 @@
 
 .ListFieldRow {
   display: grid;
+  transition: 200ms opacity ease-out;
 
   &[data-dragging] {
     opacity: 0.5;
   }
-
-  &[data-drop-target] {
-    background-color: aqua;
-  }
 }
 
-:global(.react-aria-DropIndicator) + .ListFieldRow {
-  border-top: 1px solid blue;
+:global(.react-aria-DropIndicator)::before {
+  background-color: white;
+}
+
+:global(.react-aria-DropIndicator) {
+  padding: 32px;
+  background-color: #eceffc;
+  border: 1px dashed #4163e5;
+  border-radius: 6px;
 }
 
 .ListField-DragPreview {
@@ -64,6 +68,7 @@
 .ListFieldRow-header {
   justify-content: flex-start;
   gap: 8px;
+  cursor: grab;
 }
 
 .ListFieldRow-leading {
