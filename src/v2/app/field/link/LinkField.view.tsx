@@ -1,9 +1,9 @@
-import {Button, DialogTrigger, Elevation, Label} from '@alinea/components'
 import {createId} from '#/core/Id.js'
 import {Reference} from '#/core/Reference.js'
 import {ListRow} from '#/core/shape/ListShape.js'
 import {LinkField, LinksField} from '#/field/link/LinkField.js'
 import {EntryReference} from '#/types.js'
+import {Button, DialogTrigger, Elevation, Label} from '@alinea/components'
 import {useAtomValue} from 'jotai'
 import {
   ReactiveNode,

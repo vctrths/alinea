@@ -1,3 +1,7 @@
+.sidebar {
+  scrollbar-gutter: stable;
+}
+
 .EntrySidebar-header {
   & > :global(.alinea-rac-Tablist) {
     align-self: auto;

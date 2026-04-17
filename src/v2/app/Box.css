@@ -19,17 +19,18 @@
   align-items: center;
   padding: 0 8px;
   color: var(--alinea-text-color);
+  box-sizing: content-box;
 
-  &[data-position="between"] {
+  &[data-position='between'] {
     justify-content: space-between;
   }
-  &[data-position="start"] {
+  &[data-position='start'] {
     justify-content: start;
   }
-  &[data-position="middle"] {
+  &[data-position='middle'] {
     justify-content: center;
   }
-  &[data-position="end"] {
+  &[data-position='end'] {
     justify-content: end;
   }
 }

@@ -7,12 +7,13 @@ import {ListRow} from '#/core/shape/ListShape.js'
 import {ListOptions} from '#/field/list.js'
 import {NodeEditor} from '#/v2/app/Editor.js'
 import {
-  IcOutlineList,
   IcRoundAdd,
   IcRoundArrowDownward,
   IcRoundArrowUpward,
   IcRoundDelete,
-  IcRoundDragIndicator
+  IcRoundMoreVert,
+  IcRoundUnfoldLess,
+  IcRoundUnfoldMore
 } from '#/v2/icons.js'
 import {ReactiveNode} from '#/v2/store/Dashboard.js'
 import {
@@ -25,7 +26,7 @@ import {Button, Icon, Label} from '@alinea/components'
 import styler from '@alinea/styler'
 import type {DragItem} from '@react-types/shared'
 import {useAtomValue, useSetAtom} from 'jotai'
-import {useMemo} from 'react'
+import {useMemo, useState} from 'react'
 import {
   type Key,
   GridList,
@@ -69,16 +70,35 @@ export function ListFieldView({field}: ListFieldViewProps) {
   )
   const readOnly = Boolean(options.readOnly)
   const hasRows = rows.length > 0
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const items = useMemo(
     () =>
       rows.map((value, index) => ({
         id: value._id,
         index,
         row: nodes[index],
-        typeName: value._type
+        typeName: value._type,
+        expanded: expandedIds.has(value._id)
       })),
-    [nodes, rows]
+    [nodes, rows, expandedIds]
   )
+  const allExpanded = rows.length > 0 && expandedIds.size === rows.length
+  function toggleAll() {
+    setExpandedIds(allExpanded ? new Set() : new Set(rows.map(row => row._id)))
+    console.log(expandedIds)
+  }
+
+  function toggleRow(rowId: string) {
+    console.log('toggle ' + rowId)
+    setExpandedIds(current => {
+      const next = new Set(current)
+
+      if (next.has(rowId)) next.delete(rowId)
+      else next.add(rowId)
+
+      return next
+    })
+  }
 
   function reorderRows(
     current: Array<ListValue>,
@@ -121,7 +141,14 @@ export function ListFieldView({field}: ListFieldViewProps) {
         return type ? Type.label(type) : 'no type'
       })
       const holdLabel = labels[0] || labels.join(', ')
-      return <Box className={styles.ListField.DragPreview()}>{holdLabel}</Box>
+      return (
+        <Box className={styles.ListField.DragPreview()}>
+          <Button slot="drag" appearance="plain" intent="secondary">
+            ≡
+          </Button>
+          {holdLabel}
+        </Box>
+      )
     }
   })
 
@@ -140,59 +167,59 @@ export function ListFieldView({field}: ListFieldViewProps) {
     })
   }
 
-  const content =
-    hasRows || !readOnly ? (
-      <Box>
-        <BoxRow>
-          <BoxHeader>{options.label}</BoxHeader>
+  const content = (hasRows || !readOnly) && (
+    <Box>
+      <BoxRow>
+        <BoxHeader>{options.label}</BoxHeader>
+        <Button
+          size="icon"
+          icon={allExpanded ? IcRoundUnfoldLess : IcRoundUnfoldMore}
+          onPress={toggleAll}
+        />
+      </BoxRow>
+      {hasRows && (
+        <GridList
+          aria-label={options.label || 'List items'}
+          items={items}
+          className={styles.rows()}
+          dragAndDropHooks={readOnly ? undefined : dragAndDropHooks}
+          selectionMode="none"
+        >
+          {item => (
+            <ListFieldRow
+              index={item.index}
+              itemId={item.id}
+              key={item.id}
+              list={list}
+              readOnly={readOnly}
+              row={item.row}
+              rows={rows.length}
+              schema={options.schema}
+              expanded={item.expanded}
+              expandTrigger={() => toggleRow(item.id)}
+            />
+          )}
+        </GridList>
+      )}
+      {!readOnly && (
+        <BoxRow position="middle">
+          <div className={styles.ListFieldView.create()}>
+            {schemaEntries.map(([typeName, type]) => (
+              <Button
+                key={typeName}
+                appearance="plain"
+                intent="secondary"
+                onPress={() => addRow(typeName, type)}
+              >
+                <Icon aria-hidden icon={getType(type).icon || IcRoundAdd} />
+                {`Add ${Type.label(type)}`}
+              </Button>
+            ))}
+          </div>
         </BoxRow>
-        {hasRows ? (
-          <GridList
-            aria-label={options.label || 'List items'}
-            items={items}
-            className={styles.rows()}
-            dragAndDropHooks={readOnly ? undefined : dragAndDropHooks}
-            selectionMode="none"
-          >
-            {item => (
-              <ListFieldRow
-                index={item.index}
-                itemId={item.id}
-                key={item.id}
-                list={list}
-                readOnly={readOnly}
-                row={item.row}
-                rows={rows.length}
-                schema={options.schema}
-              />
-            )}
-          </GridList>
-        ) : (
-          <BoxContent>
-            <div className={styles.empty()}>No items yet.</div>
-          </BoxContent>
-        )}
-        {!readOnly && (
-          <BoxRow position="middle">
-            <div className={styles.create()}>
-              {schemaEntries.map(([typeName, type]) => (
-                <Button
-                  key={typeName}
-                  appearance="plain"
-                  intent="secondary"
-                  onPress={() => addRow(typeName, type)}
-                >
-                  <Icon aria-hidden icon={getType(type).icon || IcRoundAdd} />
-                  {`Add ${Type.label(type)}`}
-                </Button>
-              ))}
-            </div>
-          </BoxRow>
-        )}
-      </Box>
-    ) : (
-      <div className={styles.empty()}>No items yet.</div>
-    )
+      )}
+    </Box>
+  )
 
   return (
     <Label errorMessage={error}>
@@ -209,6 +236,8 @@ interface ListFieldRowProps {
   row: ReactiveNode<ListValue>
   rows: number
   schema: Schema
+  expanded: boolean
+  expandTrigger: () => void
 }
 
 function ListFieldRow({
@@ -218,16 +247,17 @@ function ListFieldRow({
   readOnly,
   row,
   rows,
-  schema
+  schema,
+  expanded,
+  expandTrigger
 }: ListFieldRowProps) {
   const typeName = useAtomValue(row.field('_type')) as string
   const setRows = useSetAtom(list.value)
   const type = schema[typeName]
-
   if (!type) return null
 
   const label = Type.label(type)
-  const icon = getType(type).icon || IcOutlineList
+  // const icon = getType(type).icon || IcOutlineList
 
   function moveRow(direction: -1 | 1) {
     setRows(current => {
@@ -253,37 +283,57 @@ function ListFieldRow({
     >
       <BoxRow className={styles.ListFieldRow.header()}>
         <BoxHeader className={styles.ListFieldRow.leading()}>
-          <Icon aria-hidden icon={icon} />
+          <Button slot="drag" appearance="plain" intent="secondary">
+            ≡
+          </Button>
           <strong className={styles.ListFieldRow.title()}>{label}</strong>
         </BoxHeader>
         <div className={styles.ListFieldRow.actions()}>
-          {!readOnly && (
+          {index != 0 && (
             <Button
-              slot="drag"
-              aria-label={`Drag ${label}`}
-              appearance="plain"
-              className={styles.ListFieldRow.drag()}
+              size="icon"
+              aria-label={`Move ${label} up`}
+              className={styles.ListFieldRow.action()}
+              isDisabled={readOnly || index === 0}
+              onPress={() => moveRow(-1)}
             >
-              <Icon aria-hidden icon={IcRoundDragIndicator} />
+              <Icon aria-hidden icon={IcRoundArrowUpward} />
+            </Button>
+          )}
+          {index != rows - 1 && (
+            <Button
+              size="icon"
+              aria-label={`Move ${label} down`}
+              className={styles.ListFieldRow.action()}
+              isDisabled={readOnly || index === rows - 1}
+              onPress={() => moveRow(1)}
+            >
+              <Icon aria-hidden icon={IcRoundArrowDownward} />
             </Button>
           )}
           <Button
-            aria-label={`Move ${label} up`}
+            size="icon"
+            aria-label={`Remove ${label}`}
             className={styles.ListFieldRow.action()}
-            isDisabled={readOnly || index === 0}
-            onPress={() => moveRow(-1)}
+            isDisabled={readOnly}
+            onPress={expandTrigger}
           >
-            <Icon aria-hidden icon={IcRoundArrowUpward} />
+            {expanded ? (
+              <Icon aria-hidden icon={IcRoundUnfoldLess} />
+            ) : (
+              <Icon aria-hidden icon={IcRoundUnfoldMore} />
+            )}
           </Button>
           <Button
-            aria-label={`Move ${label} down`}
+            size="icon"
+            aria-label={`Remove ${label}`}
             className={styles.ListFieldRow.action()}
-            isDisabled={readOnly || index === rows - 1}
-            onPress={() => moveRow(1)}
+            isDisabled={readOnly}
           >
-            <Icon aria-hidden icon={IcRoundArrowDownward} />
+            <Icon aria-hidden icon={IcRoundMoreVert} />
           </Button>
           <Button
+            size="icon"
             aria-label={`Remove ${label}`}
             className={styles.ListFieldRow.action()}
             isDisabled={readOnly}
@@ -293,13 +343,15 @@ function ListFieldRow({
           </Button>
         </div>
       </BoxRow>
-      <BoxContent className={styles.body()}>
-        <NodeEditor
-          node={row as ReactiveNode<object>}
-          surface="plain"
-          type={type}
-        />
-      </BoxContent>
+      {expanded && (
+        <BoxContent className={styles.body()}>
+          <NodeEditor
+            node={row as ReactiveNode<object>}
+            surface="plain"
+            type={type}
+          />
+        </BoxContent>
+      )}
     </GridListItem>
   )
 }

@@ -31,10 +31,7 @@
   color: #5d6b79;
   background: #fbfcfe;
   font-size: 14px;
-}
-
-.ListFieldView-drag-preview {
-  background-color: red;
+  margin: 8px;
 }
 
 .ListFieldRow {
@@ -51,14 +48,17 @@
 }
 
 :global(.react-aria-DropIndicator) {
-  padding: 32px;
+  min-height: 32px;
   background-color: #eceffc;
   border: 1px dashed #4163e5;
   border-radius: 6px;
+  box-sizing: border-box;
 }
 
 .ListField-DragPreview {
-  padding: 8px 12px;
+  padding-right: 8px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .ListFieldRow + .ListFieldRow {
@@ -67,14 +67,15 @@
 
 .ListFieldRow-header {
   justify-content: flex-start;
-  gap: 8px;
   cursor: grab;
+  padding-left: 0;
 }
 
 .ListFieldRow-leading {
   display: inline-flex;
   align-items: center;
   color: #22303d;
+  gap: 0;
 }
 
 .ListFieldRow-title {
@@ -90,11 +91,6 @@
 }
 
 .ListFieldRow-drag {
-  min-width: 36px;
-  padding: 0 10px;
-}
-
-.ListFieldRow-action {
   min-width: 36px;
   padding: 0 10px;
 }
