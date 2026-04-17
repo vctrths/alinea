@@ -85,11 +85,9 @@ export function ListFieldView({field}: ListFieldViewProps) {
   const allExpanded = rows.length > 0 && expandedIds.size === rows.length
   function toggleAll() {
     setExpandedIds(allExpanded ? new Set() : new Set(rows.map(row => row._id)))
-    console.log(expandedIds)
   }
 
   function toggleRow(rowId: string) {
-    console.log('toggle ' + rowId)
     setExpandedIds(current => {
       const next = new Set(current)
 
