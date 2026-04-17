@@ -15,6 +15,8 @@ node_modules
 *.tsbuildinfo
 /generated
 .next
+llms-full.txt
+
 /.playwright/.cache
 /test-results
 /playwright-report
