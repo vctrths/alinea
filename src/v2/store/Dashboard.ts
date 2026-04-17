@@ -469,6 +469,7 @@ export class DashboardExplorer {
         workspace: location.workspace,
         root: location.root,
         parentId: location.parentId ?? null,
+        // TODO need type image to allow directories containing images too
         filter: this.#options.filter,
         select: Entry.id,
         status: 'preferDraft'
