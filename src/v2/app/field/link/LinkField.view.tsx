@@ -21,6 +21,7 @@ import {
 } from '../../../store.js'
 import {Box, BoxHeader, BoxRow} from '../../Box.js'
 import {ExternalLinkPicker} from '../../ExternalLinkPicker.js'
+import {ImagePicker} from '../../ImagePicker.js'
 import {LinkPicker} from '../../LinkPicker.js'
 interface LinkRowProps {
   node: ReactiveNode<Reference>
@@ -164,9 +165,11 @@ interface AllowedActions {
   allowImages?: boolean
 }
 
-interface SingleFieldActionsProps extends AllowedActions {
+interface StandardFieldActionProps {
   field: LinkField<Reference, unknown>
 }
+interface SingleFieldActionsProps
+  extends AllowedActions, StandardFieldActionProps {}
 
 function SingleFieldActions({
   field,
@@ -189,19 +192,41 @@ function SingleFieldActions({
       )}
 
       {allowImages && (
-        <Button appearance="plain" intent="secondary" isDisabled>
+        <SingleImageDialog field={field}>
           <IcRoundAdd /> Add image
-        </Button>
+        </SingleImageDialog>
       )}
     </>
   )
 }
+function SingleImageDialog({field, children}: SingleLinkDialogProps) {
+  const [value, setValue] = useFieldValue(field)
+  // const dashboard = useAtom()
 
-export interface SingleLinkFieldViewProps {
-  field: LinkField<Reference, unknown>
+  return (
+    <DialogTrigger>
+      <Button appearance="plain" intent="secondary">
+        {children}
+      </Button>
+      <ImagePicker
+        selectionMode="single"
+        selectionBehavior="replace"
+        initialSelection={
+          value?._type === 'entry' ? [(value as EntryReference)._entry] : []
+        }
+        onConfirm={selection =>
+          setValue({
+            _id: createId(),
+            _type: 'image',
+            _entry: selection[0]
+          } satisfies EntryReference as Reference)
+        }
+      />
+    </DialogTrigger>
+  )
 }
 
-export function SingleLinkFieldView({field}: SingleLinkFieldViewProps) {
+export function SingleLinkFieldView({field}: StandardFieldActionProps) {
   const [_, setValue] = useFieldValue(field)
   const options = useFieldOptions(field)
   const node = useFieldNode(field)
