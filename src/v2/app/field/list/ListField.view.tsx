@@ -381,7 +381,6 @@ function ListFieldRow({
       id={itemId}
       textValue={`${label} ${index + 1}`}
       className={styles.ListFieldRow()}
-      data-expanded={expanded ? 'true' : 'false'}
     >
       {index === 0 && (
         <ListFieldSeparator
@@ -415,7 +414,10 @@ function ListFieldRow({
           </div>
         </BoxRow>
       )}
-      <BoxRow className={styles.ListFieldRow.header()} data-expanded={expanded}>
+      <BoxRow
+        className={styles.ListFieldRow.header()}
+        data-expanded={expanded ? 'true' : undefined}
+      >
         <BoxHeader className={styles.ListFieldRow.leading()}>
           <Button slot="drag" appearance="plain" intent="secondary">
             ≡

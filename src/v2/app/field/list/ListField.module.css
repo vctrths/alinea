@@ -5,7 +5,7 @@
 
 .ListFieldView-rows {
   display: grid;
-  gap: 12px;
+  gap: 0;
 }
 
 .ListFieldView-drag-preview {
@@ -37,31 +37,37 @@
 .ListFieldRow {
   display: grid;
   transition: 200ms opacity ease-out;
-  /* border: none !important; */
 
   &[data-dragging] {
     opacity: 0.5;
   }
 }
 
+.ListFieldRow + .ListFieldRow {
+  border-top: 1px solid var(--alinea-border-color);
+}
+
 .ListFieldRow-separator {
   position: relative;
-  height: 2px;
+  height: 0;
   width: 100%;
   overflow: visible;
-  border-top: 1px solid var(--alinea-border-color);
-  transition-delay: 200ms;
+  border-top: 1px solid transparent;
+  transition:
+    border-color 140ms ease,
+    border-top-width 140ms ease;
 
   &::before {
     content: '';
     position: absolute;
     inset: -8px 0;
   }
+}
 
-  &:is(:hover, .ListFieldRow-separator[data-open='true']) {
-    border-top-width: 2px;
-    border-color: blue;
-  }
+.ListFieldRow:not([data-dragging])
+  .ListFieldRow-separator:is(:hover, [data-open='true']) {
+  border-top-width: 2px;
+  border-color: #5675e8;
 }
 
 .ListFieldRow-separatorButton {
@@ -72,11 +78,11 @@
   transform: translate(-50%, -50%);
   opacity: 0;
   transition: opacity 140ms ease;
-  transition-delay: 200ms;
 }
 
-.ListFieldRow-separator:hover .ListFieldRow-separatorButton,
-.ListFieldRow-separator[data-open='true'] .ListFieldRow-separatorButton {
+.ListFieldRow:not([data-dragging])
+  .ListFieldRow-separator:is(:hover, [data-open='true'])
+  .ListFieldRow-separatorButton {
   opacity: 1;
 }
 
@@ -88,11 +94,13 @@
   opacity: 0;
   overflow: hidden;
   pointer-events: none;
-  border-bottom: 1px solid blue;
+  border-top: 0;
+  border-bottom: 1px solid transparent;
   transition:
     height 180ms ease,
     opacity 160ms ease,
-    border-color 180ms ease;
+    border-color 180ms ease,
+    border-bottom-color 180ms ease;
 }
 
 .ListFieldRow-addBetween[data-open='true'] {
@@ -100,7 +108,7 @@
   opacity: 1;
   pointer-events: auto;
   border-bottom-width: 2px;
-  border-top-color: var(--alinea-border-color);
+  border-bottom-color: #5675e8;
 }
 
 :global(.react-aria-DropIndicator)::before {
@@ -121,14 +129,11 @@
   align-items: center;
 }
 
-.ListFieldView-rows > .ListFieldRow[data-expanded='true']:first-child {
-  border-top: 1px solid var(--alinea-border-color);
-}
-
 :global(.alinea-rac-BoxRow).ListFieldRow-header {
   justify-content: space-between;
   cursor: grab;
   padding-left: 0;
+  border-top: 0;
   border-bottom: 0;
 
   &[data-expanded='true'] {
@@ -209,5 +214,4 @@
   display: grid;
   gap: 12px;
   align-items: normal;
-  border-top: 0;
 }
