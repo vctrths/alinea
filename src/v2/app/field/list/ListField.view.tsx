@@ -8,8 +8,10 @@ import {ListOptions} from '#/field/list.js'
 import {NodeEditor} from '#/v2/app/Editor.js'
 import {
   IcRoundAdd,
+  IcRoundAnchor,
   IcRoundArrowDownward,
   IcRoundArrowUpward,
+  IcRoundClose,
   IcRoundDelete,
   IcRoundMoreVert,
   IcRoundUnfoldLess,
@@ -71,6 +73,7 @@ export function ListFieldView({field}: ListFieldViewProps) {
   const readOnly = Boolean(options.readOnly)
   const hasRows = rows.length > 0
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+  const [settingsOpenIds, setSettingsOpenIds] = useState<Set<string>>(new Set())
   const items = useMemo(
     () =>
       rows.map((value, index) => ({
@@ -78,9 +81,10 @@ export function ListFieldView({field}: ListFieldViewProps) {
         index,
         row: nodes[index],
         typeName: value._type,
-        expanded: expandedIds.has(value._id)
+        expanded: expandedIds.has(value._id),
+        details: settingsOpenIds.has(value._id)
       })),
-    [nodes, rows, expandedIds]
+    [nodes, rows, expandedIds, settingsOpenIds]
   )
   const allExpanded = rows.length > 0 && expandedIds.size === rows.length
   function toggleAll() {
@@ -90,10 +94,16 @@ export function ListFieldView({field}: ListFieldViewProps) {
   function toggleRow(rowId: string) {
     setExpandedIds(current => {
       const next = new Set(current)
-
       if (next.has(rowId)) next.delete(rowId)
       else next.add(rowId)
-
+      return next
+    })
+  }
+  function toggleSettings(rowId: string) {
+    setSettingsOpenIds(current => {
+      const next = new Set(current)
+      if (next.has(rowId)) next.delete(rowId)
+      else next.add(rowId)
       return next
     })
   }
@@ -122,7 +132,7 @@ export function ListFieldView({field}: ListFieldViewProps) {
       return {
         'text/plain': id,
         [LIST_FIELD_ROW_DRAG_TYPE]: id,
-        typeName: item?.typeName
+        typeName: item?.typeName ?? ''
       }
     })
   }
@@ -165,13 +175,43 @@ export function ListFieldView({field}: ListFieldViewProps) {
     })
   }
 
+  interface AddBetweenRowProps {
+    centralRowId: string
+    typeName: string
+    position?: 'before' | 'after'
+  }
+
+  function addBetweenRow({
+    centralRowId,
+    typeName,
+    position = 'after'
+  }: AddBetweenRowProps) {
+    const positionIndex = position === 'after' ? 1 : -1
+    const type = options.schema[typeName]
+    if (!type) return
+    setRows(current => {
+      const insertAt = current.findIndex(row => row._id === centralRowId)
+      if (insertAt === -positionIndex) return current
+      const initialValue = Type.initialValue(type) as Record<string, unknown>
+      const next = [...current]
+      next.splice(insertAt + positionIndex, 0, {
+        _id: createId(),
+        _index: '',
+        _type: typeName,
+        ...initialValue
+      })
+      if (allExpanded) toggleRow(next[insertAt + 1]._id)
+      return next
+    })
+  }
+
   const content = (hasRows || !readOnly) && (
     <Box>
       <BoxRow>
         <BoxHeader>{options.label}</BoxHeader>
         <Button
           size="icon"
-          icon={allExpanded ? IcRoundUnfoldLess : IcRoundUnfoldMore}
+          icon={allExpanded ? IcRoundUnfoldMore : IcRoundUnfoldLess}
           onPress={toggleAll}
         />
       </BoxRow>
@@ -194,7 +234,16 @@ export function ListFieldView({field}: ListFieldViewProps) {
               rows={rows.length}
               schema={options.schema}
               expanded={item.expanded}
+              details={item.details}
               expandTrigger={() => toggleRow(item.id)}
+              detailsTrigger={() => toggleSettings(item.id)}
+              addBetweenRow={position =>
+                addBetweenRow({
+                  centralRowId: item.id,
+                  typeName: item.typeName,
+                  position
+                })
+              }
             />
           )}
         </GridList>
@@ -235,7 +284,46 @@ interface ListFieldRowProps {
   rows: number
   schema: Schema
   expanded: boolean
+  details: boolean
   expandTrigger: () => void
+  detailsTrigger: () => void
+  addBetweenRow: (position?: 'before' | 'after') => void
+}
+
+interface ListFieldSeparatorProps {
+  label: string
+  position: 'before' | 'after'
+  isOpen: boolean
+  readOnly: boolean
+  addBetweenOpen: boolean
+  onPress: (position: 'before' | 'after') => void
+}
+
+function ListFieldSeparator({
+  label,
+  position,
+  isOpen,
+  readOnly,
+  addBetweenOpen,
+  onPress
+}: ListFieldSeparatorProps) {
+  return (
+    <div
+      className={styles.ListFieldRow.separator()}
+      data-open={isOpen ? 'true' : undefined}
+    >
+      <Button
+        size="icon"
+        aria-label={`Add ${label} ${position}`}
+        className={styles.ListFieldRow.separatorButton()}
+        isDisabled={readOnly}
+        onPress={() => onPress(position)}
+        aria-expanded={addBetweenOpen}
+      >
+        <Icon aria-hidden icon={isOpen ? IcRoundClose : IcRoundAdd} />
+      </Button>
+    </div>
+  )
 }
 
 function ListFieldRow({
@@ -247,15 +335,30 @@ function ListFieldRow({
   rows,
   schema,
   expanded,
-  expandTrigger
+  details,
+  expandTrigger,
+  detailsTrigger,
+  addBetweenRow
 }: ListFieldRowProps) {
   const typeName = useAtomValue(row.field('_type')) as string
   const setRows = useSetAtom(list.value)
   const type = schema[typeName]
+  const [addBetweenPosition, setAddBetweenPosition] = useState<
+    'before' | 'after' | null
+  >(null)
   if (!type) return null
 
   const label = Type.label(type)
   // const icon = getType(type).icon || IcOutlineList
+  const addBetweenOpen = addBetweenPosition !== null
+
+  function openAddBetween(position: 'before' | 'after') {
+    setAddBetweenPosition(current => (current === position ? null : position))
+  }
+
+  function closeAddBetween() {
+    setAddBetweenPosition(null)
+  }
 
   function moveRow(direction: -1 | 1) {
     setRows(current => {
@@ -278,8 +381,41 @@ function ListFieldRow({
       id={itemId}
       textValue={`${label} ${index + 1}`}
       className={styles.ListFieldRow()}
+      data-expanded={expanded ? 'true' : 'false'}
     >
-      <BoxRow className={styles.ListFieldRow.header()}>
+      {index === 0 && (
+        <ListFieldSeparator
+          label={label}
+          position="before"
+          isOpen={addBetweenPosition === 'before'}
+          readOnly={readOnly}
+          addBetweenOpen={addBetweenOpen}
+          onPress={openAddBetween}
+        />
+      )}
+      {addBetweenPosition === 'before' && (
+        <BoxRow
+          position="middle"
+          className={styles.ListFieldRow.addBetween()}
+          data-open="true"
+        >
+          <div className={styles.ListFieldView.create()}>
+            <Button
+              key={typeName}
+              appearance="plain"
+              intent="secondary"
+              onPress={() => {
+                addBetweenRow('before')
+                closeAddBetween()
+              }}
+            >
+              <Icon aria-hidden icon={getType(type).icon || IcRoundAdd} />
+              Add Inbetween
+            </Button>
+          </div>
+        </BoxRow>
+      )}
+      <BoxRow className={styles.ListFieldRow.header()} data-expanded={expanded}>
         <BoxHeader className={styles.ListFieldRow.leading()}>
           <Button slot="drag" appearance="plain" intent="secondary">
             ≡
@@ -317,27 +453,41 @@ function ListFieldRow({
             onPress={expandTrigger}
           >
             {expanded ? (
-              <Icon aria-hidden icon={IcRoundUnfoldLess} />
-            ) : (
               <Icon aria-hidden icon={IcRoundUnfoldMore} />
+            ) : (
+              <Icon aria-hidden icon={IcRoundUnfoldLess} />
             )}
           </Button>
+          <div
+            className={styles.ListFieldRow.detailOptions()}
+            data-open={details ? 'true' : undefined}
+          >
+            <Button
+              size="icon"
+              aria-label={`Anchor ${label}`}
+              className={styles.ListFieldRow.action()}
+              isDisabled={readOnly}
+            >
+              <Icon aria-hidden icon={IcRoundAnchor} />
+            </Button>
+            <Button
+              size="icon"
+              aria-label={`Remove ${label}`}
+              className={styles.ListFieldRow.action()}
+              isDisabled={readOnly}
+              onPress={deleteRow}
+            >
+              <Icon aria-hidden icon={IcRoundDelete} />
+            </Button>
+          </div>
           <Button
             size="icon"
             aria-label={`Remove ${label}`}
             className={styles.ListFieldRow.action()}
             isDisabled={readOnly}
+            onPress={detailsTrigger}
           >
             <Icon aria-hidden icon={IcRoundMoreVert} />
-          </Button>
-          <Button
-            size="icon"
-            aria-label={`Remove ${label}`}
-            className={styles.ListFieldRow.action()}
-            isDisabled={readOnly}
-            onPress={deleteRow}
-          >
-            <Icon aria-hidden icon={IcRoundDelete} />
           </Button>
         </div>
       </BoxRow>
@@ -349,6 +499,36 @@ function ListFieldRow({
             type={type}
           />
         </BoxContent>
+      )}
+      <ListFieldSeparator
+        label={label}
+        position="after"
+        isOpen={addBetweenPosition === 'after'}
+        readOnly={readOnly}
+        addBetweenOpen={addBetweenOpen}
+        onPress={openAddBetween}
+      />
+      {addBetweenPosition === 'after' && (
+        <BoxRow
+          position="middle"
+          className={styles.ListFieldRow.addBetween()}
+          data-open="true"
+        >
+          <div className={styles.ListFieldView.create()}>
+            <Button
+              key={typeName}
+              appearance="plain"
+              intent="secondary"
+              onPress={() => {
+                addBetweenRow('after')
+                closeAddBetween()
+              }}
+            >
+              <Icon aria-hidden icon={getType(type).icon || IcRoundAdd} />
+              Add Inbetween
+            </Button>
+          </div>
+        </BoxRow>
       )}
     </GridListItem>
   )
