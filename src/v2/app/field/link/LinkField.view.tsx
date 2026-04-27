@@ -5,7 +5,7 @@ import {ListRow} from 'alinea/core/shape/ListShape'
 import {LinkField, LinksField} from 'alinea/field/link/LinkField'
 import {EntryReference, UrlReference} from 'alinea/types.js'
 import {
-  IcRoundAdd,
+  IcRoundAddCircle,
   IcRoundClose,
   IcRoundLink,
   IcRoundSwapHoriz
@@ -181,19 +181,19 @@ function SingleFieldActions({
     <>
       {allowLinks && (
         <SingleLinkDialog field={field}>
-          <IcRoundAdd /> Add link
+          <IcRoundAddCircle /> Add link
         </SingleLinkDialog>
       )}
 
       {allowExternalLinks && (
         <SingleExternalDialog field={field}>
-          <IcRoundAdd /> Add external link
+          <IcRoundAddCircle /> Add external link
         </SingleExternalDialog>
       )}
 
       {allowImages && (
         <SingleImageDialog field={field}>
-          <IcRoundAdd /> Add image
+          <IcRoundAddCircle /> Add image
         </SingleImageDialog>
       )}
     </>
@@ -201,7 +201,6 @@ function SingleFieldActions({
 }
 function SingleImageDialog({field, children}: SingleLinkDialogProps) {
   const [value, setValue] = useFieldValue(field)
-  // const dashboard = useAtom()
 
   return (
     <DialogTrigger>
@@ -305,7 +304,7 @@ export function MultipleLinksFieldView({field}: MultipleLinksFieldViewProps) {
         <BoxRow position="middle">
           <BoxHeader>
             <MultipleLinkDialog field={field}>
-              <IcRoundAdd />
+              <IcRoundAddCircle />
               Add/Remove Link(s)
             </MultipleLinkDialog>
           </BoxHeader>
