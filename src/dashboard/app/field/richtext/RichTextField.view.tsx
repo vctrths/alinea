@@ -136,7 +136,6 @@ function typeExtension(
     const store = useStore()
     const setValue = useFieldSetter(field)
     const reactive = useFieldNode(field)
-    const options = useFieldOptions(field)
     const {[BlockNode.id]: id} = node.attrs
     const blockId = String(id ?? '')
     const [exp, setExp] = useState(() => {
@@ -190,7 +189,16 @@ function typeExtension(
     }, [rowNode])
     const rowValue = useAtomValue(rowValueAtom) as object | undefined
     const hydratedValue = useMemo(() => {
-      return rowValue ? hydrateBlockValue(rowValue, type) : rowValue
+      if (!rowValue) return rowValue
+      const initialValue = Type.initialValue(type)
+      let changed = false
+      const result = {...rowValue} as Record<string, unknown>
+      for (const [key, initial] of entries(initialValue)) {
+        if (key in result) continue
+        result[key] = initial
+        changed = true
+      }
+      return changed ? result : rowValue
     }, [rowValue])
     useEffect(() => {
       if (!rowNode || !hydratedValue || hydratedValue === rowValue) return
@@ -231,7 +239,7 @@ function typeExtension(
       return [name, mergeAttributes(HTMLAttributes)]
     },
     addNodeView() {
-      return ReactNodeViewRenderer(RichTextFieldBlock)
+      return ReactNodeViewRenderer(View)
     },
     addAttributes() {
       return {
