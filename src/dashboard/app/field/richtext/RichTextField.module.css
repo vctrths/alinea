@@ -46,12 +46,24 @@
   }
 }
 
-:global(.react-renderer) {
-  &:not(:last-child) {
-    margin-bottom: 12px;
-  }
-  &:last-child {
-    margin-bottom: 4px;
+.RichTextFieldBlock {
+  margin: 14px 0;
+  outline: 4px solid transparent;
+  transition: var(--alinea-transition);
+}
+
+.RichTextFieldView {
+  &:focus-within:not(:has(.RichTextFieldBlock:focus-within)) {
+    :global(.ProseMirror-selectednode) .RichTextFieldBlock {
+      :global(.react-renderer) {
+        &:not(:last-child) {
+          margin-bottom: 12px;
+        }
+        &:last-child {
+          margin-bottom: 4px;
+        }
+      }
+    }
   }
 }
 
@@ -68,6 +80,41 @@
   }
 }
 
+.RichTextFieldBlock-header {
+  gap: 6px;
+}
+
+.RichTextFieldBlock-drag {
+  flex: 0 0 auto;
+  cursor: grab;
+}
+
+.RichTextFieldBlock-fold {
+  flex: 0 0 auto;
+}
+
+.RichTextFieldBlock-title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--alinea-content-primary);
+  font-size: var(--alinea-font-size-base);
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.RichTextFieldBlock-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  align-items: center;
+}
+
+.RichTextFieldBlock-body {
+  background: var(--alinea-surface-field);
+}
 .RichTextFieldView-Surface-Header {
   padding-left: 4px;
   padding-right: 4px;

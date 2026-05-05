@@ -39,7 +39,7 @@ import {
   useEditor
 } from '@tiptap/react'
 import {atom, useAtomValue, useStore} from 'jotai'
-import {memo, useCallback, useMemo, useRef, useState} from 'react'
+import {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {createPortal} from 'react-dom'
 import {NodeEditor} from '../../Editor.js'
 import {
@@ -182,8 +182,31 @@ function typeExtension(
         })
       })
     }, [reactive, id])
-    const rowNode = useAtomValue(rowNodeAtom) as ReactiveNode<object>
+    const rowNode = useAtomValue(rowNodeAtom) as
+      | ReactiveNode<object>
+      | undefined
+    const rowValueAtom = useMemo(() => {
+      return atom(get => (rowNode ? get(rowNode.value) : undefined))
+    }, [rowNode])
+    const rowValue = useAtomValue(rowValueAtom) as object | undefined
+    const hydratedValue = useMemo(() => {
+      if (!rowValue) return rowValue
+      const initialValue = Type.initialValue(type)
+      let changed = false
+      const result = {...rowValue} as Record<string, unknown>
+      for (const [key, initial] of entries(initialValue)) {
+        if (key in result) continue
+        result[key] = initial
+        changed = true
+      }
+      return changed ? result : rowValue
+    }, [rowValue])
+    useEffect(() => {
+      if (!rowNode || !hydratedValue || hydratedValue === rowValue) return
+      store.set(rowNode.value, hydratedValue)
+    }, [hydratedValue, rowNode, rowValue, store])
     if (!rowNode) return null
+    if (hydratedValue !== rowValue) return null
     return (
       <NodeViewWrapper>
         <Surface className={styles.RichTextFieldView.Surface()} tabIndex={0}>
@@ -248,6 +271,7 @@ function RTView<Blocks extends Schema>({
   const picker = usePickTextLink()
   const setValue = useFieldSetter(field)
   const node = useFieldNode(field)
+  const picker = usePickTextLink()
   const [focus, setFocus] = useState(false)
   const expandedByBlockId = useRef(new Map<string, boolean>())
   const containerRef = useRef<HTMLDivElement>(null)
@@ -345,6 +369,7 @@ function RTView<Blocks extends Schema>({
           />,
           toolbar
         )}
+      <PickTextLink picker={picker} />
     </>
   )
 }

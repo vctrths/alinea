@@ -5,7 +5,13 @@ import {Section} from '#/core/Section.js'
 import {Type} from '#/core/Type.js'
 import {styler} from '@alinea/styler'
 import {useAtom, useAtomValue, useSetAtom} from 'jotai'
-import {memo, PropsWithChildren, useEffect, useTransition} from 'react'
+import {
+  memo,
+  PropsWithChildren,
+  useEffect,
+  useState,
+  useTransition
+} from 'react'
 import {IcBaselineErrorOutline} from '../icons.js'
 import {
   Dashboard,
@@ -23,7 +29,6 @@ import {
   useFieldView,
   useNodeEditor
 } from '../store/hooks.js'
-import {DetailsBar} from './DetailsBar.js'
 import type {DetailsBarStatus} from './DetailsBar.js'
 import css from './Editor.module.css'
 import {FileEditor} from './editor/FileEditor.js'
@@ -254,6 +259,7 @@ function EntryEditor({entry}: EntryEditorProps) {
   const isUnpublished = Boolean(activeVersion?.main && status === 'draft')
   const barStatus = detailsBarStatus(status, isDirty, isUnpublished)
   const barStatusLabel = detailsBarStatusLabel(status, isDirty, isUnpublished)
+  const [isSidebarOpen, setSidebarOpen] = useState(true)
 
   const discardAndConfirm = () => {
     startTransition(() => {
@@ -270,16 +276,17 @@ function EntryEditor({entry}: EntryEditorProps) {
   }
 
   useEffect(() => {
+    if (node.readOnly && !isUntranslated) return
     setEditing(isUntranslated || isDirty ? node : undefined)
   }, [isDirty, isUntranslated, node, setEditing])
 
   let editorBody = (
     <>
-      <DetailsBar
+      {/*<DetailsBar
         entry={entry}
         status={barStatus}
         statusLabel={barStatusLabel}
-      />
+      />*/}
 
       <RailBody className={styles.EntryEditor.body()}>
         {isUntranslated && (
@@ -297,11 +304,11 @@ function EntryEditor({entry}: EntryEditorProps) {
   if (isMediaFile) {
     editorBody = (
       <>
-        <DetailsBar
+        {/*<DetailsBar
           entry={entry}
           status={barStatus}
           statusLabel={barStatusLabel}
-        />
+        />*/}
         <RailBody className={styles.EntryEditor.body()}>
           <NodeEditor node={node} type={type.type}>
             <FileEditor entry={entry} />
@@ -311,9 +318,16 @@ function EntryEditor({entry}: EntryEditorProps) {
     )
   }
 
+  const hasSidebar = !isUntranslated && !isMediaFile
+
   const mainEditor = (
     <Rail main>
-      <EntryHeader entry={entry} node={node} />
+      <EntryHeader
+        entry={entry}
+        isSidebarOpen={isSidebarOpen}
+        node={node}
+        onSidebarOpenChange={hasSidebar ? setSidebarOpen : undefined}
+      />
 
       {editorBody}
 
@@ -336,17 +350,19 @@ function EntryEditor({entry}: EntryEditorProps) {
               This entry has unsaved changes
             </DashboardModalContent>
             <DashboardModalFooter>
-              <Button intent="warning" onPress={discardAndConfirm}>
+              <Button onPress={discardAndConfirm} intent="secondary">
                 Discard my changes
               </Button>
-              <Button onPress={saveAndConfirm}>Save as draft</Button>
+              <Button onPress={saveAndConfirm} intent="primary">
+                Save as draft
+              </Button>
             </DashboardModalFooter>
           </DashboardModalDialog>
         )}
       </DashboardModal>
       <EntryScope entry={entry}>
         {mainEditor}
-        {!isUntranslated && !isMediaFile && <EntrySidebar entry={entry} />}
+        {hasSidebar && isSidebarOpen && <EntrySidebar entry={entry} />}
       </EntryScope>
     </>
   )
