@@ -138,6 +138,7 @@ function typeExtension(
     const reactive = useFieldNode(field)
     const {[BlockNode.id]: id} = node.attrs
     const blockId = String(id ?? '')
+
     const [exp, setExp] = useState(() => {
       return expandedByBlockId.get(blockId) ?? true
     })
@@ -267,6 +268,7 @@ function RTView<Blocks extends Schema>({
   const options = useFieldOptions(field)
   const error = useFieldError(field)
   const toolbar = document.getElementById('alinea-toolbar')
+  const picker = usePickTextLink()
   const setValue = useFieldSetter(field)
   const node = useFieldNode(field)
   const picker = usePickTextLink()
@@ -322,6 +324,7 @@ function RTView<Blocks extends Schema>({
   })
   return (
     <>
+      <PickTextLink picker={picker} />
       <Label
         description={options.help}
         errorMessage={error}
