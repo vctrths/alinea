@@ -1036,9 +1036,17 @@ function LinkTypeBadge({picker, type, value, ...props}: LinkTypeBadgeProps) {
     )
   }
   return (
-    <Badge {...props} icon={fallbackIcon} size="small">
-      {fallbackLabel}
-    </Badge>
+    <a href={value._url} rel="noopener noreferrer" target="_blank">
+      <Badge
+        {...props}
+        icon={fallbackIcon}
+        size="small"
+        className={styles.LinkFieldView.badge()}
+      >
+        {/* EXTERNAL LINK LABEL */}
+        {fallbackLabel}
+      </Badge>
+    </a>
   )
 }
 
@@ -1109,16 +1117,25 @@ function LoadedEntryTypeBadge({
   entry,
   ...props
 }: LoadedEntryTypeBadgeProps) {
+  const dashboard = useDashboard()
+  const route = useAtomValue(dashboard.route)
+  const workspace = useAtomValue(entry.workspaceKey)
+  const root = useAtomValue(entry.rootKey)
+  const href = `#${nav.entry(workspace, root, entry.entry.id, route.locale)}`
+
   const type = useAtomValue(entry.type)
   return (
-    <Badge
-      {...props}
-      className={styles.LinkFieldView.type(styler.merge({className}))}
-      icon={type.icon || IcRoundLink}
-      size="small"
-    >
-      {type.label}
-    </Badge>
+    <a href={href} rel="noopener noreferrer" target="_blank">
+      <Badge
+        {...props}
+        className={styles.LinkFieldView.badge()}
+        icon={type.icon || IcRoundLink}
+        size="small"
+      >
+        {type.label}
+        {/*INTERNAL LINK LABEL*/}
+      </Badge>
+    </a>
   )
 }
 
@@ -1221,6 +1238,21 @@ function LinkRowReferenceActions({
   type,
   value
 }: LinkRowReferenceActionsProps) {
+  if ('_url' in value && value._url) {
+    return (
+      <Button
+        aria-label="Open external link"
+        appearance="plain"
+        icon={IcRoundOpenInNew}
+        onPress={() => {
+          window.open(value._url, '_blank', 'noopener,noreferrer')
+          closeActions()
+        }}
+      >
+        Open external link
+      </Button>
+    )
+  }
   if (!('_entry' in value)) return null
   return (
     <EntryLinkRowActions
