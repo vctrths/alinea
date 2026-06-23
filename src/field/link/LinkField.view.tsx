@@ -921,6 +921,25 @@ function EntryLinkSuffixField({
   )
 }
 
+interface EntryLinkUrlFieldProps {
+  value: LinkFieldRow
+  node: ReactiveNode<LinkFieldRow>
+}
+
+function EntryLinkUrlField({value, node}: EntryLinkUrlFieldProps) {
+  const url = useAtomValue(node.field('_url')) as string | undefined
+  const setUrl = useSetAtom(node.field('_url'))
+  if ('_entry' in value) return null
+  return (
+    <TextField
+      label="URL"
+      value={url ?? ''}
+      onChange={next => setUrl(next || undefined)}
+      isRequired
+    />
+  )
+}
+
 interface LinkMetaLabelProps {
   className: string
   node: ReactiveNode<LinkFieldRow>
@@ -1371,6 +1390,7 @@ function SingleLinkRow({field, node, value}: SingleLinkRowProps) {
                 <LinkSettingsButton />
                 <Popover placement="bottom right">
                   <ListRowSettings>
+                    <EntryLinkUrlField node={node} value={value} />
                     <LinkLabelField node={node} value={value} />
                     <EntryLinkSuffixField node={node} value={value} />
                   </ListRowSettings>
@@ -1569,6 +1589,7 @@ function MultipleLinkRow({
                 <LinkSettingsButton />
                 <Popover placement="bottom right">
                   <ListRowSettings>
+                    <EntryLinkUrlField node={node} value={value} />
                     <LinkLabelField
                       isDisabled={readOnly}
                       node={node}
