@@ -1252,8 +1252,6 @@ export class DashboardExplorer {
     return this.#options.breadcrumbs ?? false
   }
 
-  disabledKeys = atom(async get => {})
-
   onAction = atom(null, (get, set, entry: DashboardEntry) => {
     if (this.#options.onAction) {
       set(this.#options.onAction, entry)
@@ -2394,7 +2392,7 @@ export class DashboardEntryData {
 
   parentsState = atomWithPending(this.#parents)
 
-  parents = swr(this.#parents)
+  parents = unwrap(this.#parents, prev => prev ?? [])
 
   #incomingReferences = atom(async get => {
     get(this.dashboard.revisions(this.id))
