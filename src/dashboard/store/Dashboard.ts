@@ -1161,6 +1161,8 @@ export interface ExplorerOptions {
   showSelectionControls?: boolean
   initialSelection?: Array<string>
   searchDepth?: 'current' | 'all'
+  breadcrumbs?: boolean
+  conditionScope?: 'all' | 'current'
   // initialSort?: ExplorerSort
   onAction?: WritableAtom<void, [entry: DashboardEntry], void>
   onConfirm?: (selection: Array<string>) => void
@@ -1245,6 +1247,12 @@ export class DashboardExplorer {
   get hasRowAction() {
     return Boolean(this.#options.onAction)
   }
+
+  get breadcrumbs() {
+    return this.#options.breadcrumbs ?? false
+  }
+
+  disabledKeys = atom(async get => {})
 
   onAction = atom(null, (get, set, entry: DashboardEntry) => {
     if (this.#options.onAction) {
@@ -1492,8 +1500,13 @@ export class DashboardExplorer {
     if (!root && !allRoots) return []
     const locale = allRoots ? undefined : get(this.selectedLocale)
     const searchAll = Boolean(searchStarted && this.searchDepth === 'all')
+
+    const conditionScopeCurrent = this.#options.conditionScope === 'current'
+
     const flatList =
-      (Boolean(this.#options.condition) && !this.#options.pickChildren) ||
+      (Boolean(this.#options.condition) &&
+        !this.#options.pickChildren &&
+        !conditionScopeCurrent) ||
       searchAll
     const policy = get(this.dashboard.policy)
     const children = await db.find({

@@ -270,6 +270,18 @@ const SidebarTreeBody = memo(function SidebarTreeBody({
   })
   const controlledSelection =
     selectedKeys !== undefined && onSelectionChange !== undefined
+
+  function handleSelectionChange(keys: Selection) {
+    if (keys !== 'all') {
+      const [selected] = keys
+      if (selected && !expandedKeys.has(selected)) {
+        setExpandedKeys(new Set(expandedKeys).add(selected))
+      }
+    }
+
+    if (controlledSelection) onSelectionChange(keys)
+    else setTreeSelectedKeys(keys)
+  }
   return (
     <div className={styles.SidebarTree.tree.viewport()}>
       <Virtualizer layout={ListLayout} layoutOptions={treeLayoutOptions}>
@@ -283,9 +295,7 @@ const SidebarTreeBody = memo(function SidebarTreeBody({
           expandedKeys={expandedKeys}
           onExpandedChange={setExpandedKeys}
           selectedKeys={controlledSelection ? selectedKeys : treeSelectedKeys}
-          onSelectionChange={
-            controlledSelection ? onSelectionChange : setTreeSelectedKeys
-          }
+          onSelectionChange={handleSelectionChange}
         >
           {item => <SidebarItem item={item} tree={tree} />}
         </Tree>
