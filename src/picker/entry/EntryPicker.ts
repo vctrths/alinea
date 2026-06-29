@@ -42,8 +42,6 @@ export interface EntryPickerConditions {
   location?: DynamicOption<EditorLocation>
   /** Filter entries by a condition, this results in a flat list of options */
   condition?: DynamicOption<Filter<EntryFields>>
-  /** Choose whether conditions filter all results or disable non-matching current results */
-  conditionScope?: 'all' | 'current'
   /** @internal Enable entry picker navigation */
   enableNavigation?: boolean
 }

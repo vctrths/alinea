@@ -52,8 +52,7 @@ function LinkPickerModalContent({options}: ExplorerModalProps) {
   const [explorer] = useState(() =>
     dashboard.explore(location, {
       ...options,
-      searchDepth: 'all',
-      breadcrumbs: true
+      searchDepth: 'all'
     })
   )
   const onConfirm = useSetAtom(explorer.onConfirm)

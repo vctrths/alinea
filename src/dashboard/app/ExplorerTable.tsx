@@ -284,7 +284,6 @@ export function ExplorerTable({
   renderEmptyState
 }: ExplorerTableProps) {
   const [selected, setSelected] = useAtom(explorer.selection)
-  const disabledKeys = useAtomValue(explorer.disabledKeys)
   const onAction = useSetAtom(explorer.onAction)
   const selectionMode = explorer.selectionMode
   const breadcrumbs = explorer.breadcrumbs
@@ -341,7 +340,6 @@ export function ExplorerTable({
             selectionBehavior={explorer.selectionBehavior}
             selectionMode={hasSelection ? selectionMode : undefined}
             onSelectionChange={hasSelection ? setSelected : undefined}
-            disabledKeys={disabledKeys}
             onRowAction={onRowAction}
             style={{display: 'block', width: '100%', height: '100%'}}
           >

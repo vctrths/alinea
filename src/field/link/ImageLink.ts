@@ -61,8 +61,8 @@ const imageCondition = {
           ...imageExtensions.map(e => e.toUpperCase()) //Fix for historic files with case-insensitive extensions
         ]
       }
-    }
-    // {_type: 'MediaLibrary'}
+    },
+    {_type: 'MediaLibrary'}
   ]
 }
 
