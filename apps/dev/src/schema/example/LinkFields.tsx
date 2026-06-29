@@ -6,7 +6,10 @@ export const LinkFields = Config.document('Link fields', {
     entry: Field.entry('Internal link'),
     entryWithCondition: Field.entry('With condition', {
       help: 'Show only entries of type BasicFields',
-      condition: {_type: 'BasicFields'}
+      condition: {
+        _type: 'BasicFields'
+      },
+      conditionScope: 'all'
     }),
     entryWithLocation: Field.entry('With location', {
       async location({graph}) {
@@ -20,7 +23,9 @@ export const LinkFields = Config.document('Link fields', {
     }),
     linkMultiple: Field.link.multiple('Mixed links, multiple'),
     image: Field.image('Image link'),
-    images: Field.image.multiple('Image link (multiple)'),
+    images: Field.image.multiple('Image link (multiple)', {
+      conditionScope: 'current'
+    }),
     file: Field.file('File link'),
     withFields: Field.entry('With extra fields', {
       fields: {

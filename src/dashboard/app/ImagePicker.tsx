@@ -59,7 +59,6 @@ function ImagePickerModalContent({label, options}: ExplorerModalProps) {
   const [explorer] = useState(() =>
     dashboard.explore(location, {
       ...options,
-      conditionScope: 'current',
       searchDepth: 'all'
     })
   )

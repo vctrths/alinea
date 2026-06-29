@@ -1435,6 +1435,36 @@ export class DashboardExplorer {
     }
   })
 
+  disabledKeys = atom(async get => {
+    if (this.#options.conditionScope !== 'current') return new Set<Key>()
+    if (!this.#options.condition) return new Set<Key>()
+    if (!this.hasSelection) return new Set<Key>()
+
+    const items = await get(this.items)
+    if (items.length === 0) return new Set<Key>()
+
+    const ids = items.map(item => item.id)
+    const db = get(this.dashboard.db)
+
+    const matching = await db.find({
+      id: {in: ids},
+      filter: this.#options.condition,
+      select: {
+        id: Entry.id
+      },
+      status: 'preferDraft',
+      groupBy: Entry.id
+    })
+
+    const visibleIds = new Set(items.map(item => item.id))
+    const matchingIds = new Set(
+      matching.map(entry => entry.id).filter(id => visibleIds.has(id))
+    )
+    return new Set<Key>(
+      items.map(item => item.id).filter(id => !matchingIds.has(id))
+    )
+  })
+
   workspace = atom(
     get => {
       const {workspace} = get(this.location)
@@ -1506,6 +1536,12 @@ export class DashboardExplorer {
         !this.#options.pickChildren &&
         !conditionScopeCurrent) ||
       searchAll
+
+    const conditionFilter =
+      this.#options.condition && (!conditionScopeCurrent || flatList)
+        ? this.#options.condition
+        : undefined
+
     const policy = get(this.dashboard.policy)
     const children = await db.find({
       locale,
@@ -1513,7 +1549,7 @@ export class DashboardExplorer {
       workspace: location.workspace,
       root: allRoots ? undefined : location.root,
       parentId: flatList ? undefined : (location.parentId ?? null),
-      filter: this.#options.condition,
+      filter: conditionFilter,
       select: {
         id: Entry.id,
         type: Entry.type,

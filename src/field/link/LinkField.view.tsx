@@ -547,9 +547,13 @@ function LinkPickerAction({
       ? fallbackLocation
       : (options.location ?? fallbackLocation)
   const handlesMultiple = Boolean(onPickMany && picker.handlesMultiple)
+  const enableNavigation =
+    options.enableNavigation ??
+    (!pickingChildren && (!condition || options.conditionScope === 'current'))
   const pickerProps: ExplorerOptions = {
     condition,
-    enableNavigation: options.enableNavigation ?? !pickingChildren,
+    conditionScope: options.conditionScope,
+    enableNavigation,
     location,
     pickChildren: pickingChildren,
     selectionMode: handlesMultiple ? 'multiple' : 'single',
@@ -659,9 +663,13 @@ function LinkPickerDialog({
       ? fallbackLocation
       : (options.location ?? fallbackLocation)
   const handlesMultiple = Boolean(onPickMany && picker.handlesMultiple)
+  const enableNavigation =
+    options.enableNavigation ??
+    (!pickingChildren && (!condition || options.conditionScope === 'current'))
   const pickerProps: ExplorerOptions = {
     condition,
-    enableNavigation: options.enableNavigation ?? !pickingChildren,
+    conditionScope: options.conditionScope,
+    enableNavigation,
     location,
     pickChildren: pickingChildren,
     selectionMode: handlesMultiple ? 'multiple' : 'single',
