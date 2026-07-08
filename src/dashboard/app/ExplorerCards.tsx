@@ -250,7 +250,8 @@ function ExplorerCardSelectionControl({
   partialSelection,
   unselectable
 }: ExplorerCardSelectionControlProps) {
-  if (partialSelection) return <span className={styles.ExplorerCards.item.dot()} />
+  if (partialSelection)
+    return <span className={styles.ExplorerCards.item.dot()} />
   if (unselectable) return null
   return (
     <Checkbox

@@ -1215,7 +1215,7 @@ function explorerTypeFilterOptions(
     options.push({type: typeName, label: Type.label(schemaType)})
     for (const child of Type.contains(schemaType)) {
       const childName =
-        typeof child === 'string' ? child : keyOfType.get(child) ?? undefined
+        typeof child === 'string' ? child : (keyOfType.get(child) ?? undefined)
       if (childName) visit(childName)
     }
   }
@@ -1224,7 +1224,7 @@ function explorerTypeFilterOptions(
     const typeName =
       typeof contained === 'string'
         ? contained
-        : keyOfType.get(contained) ?? undefined
+        : (keyOfType.get(contained) ?? undefined)
     if (typeName) visit(typeName)
   }
 
@@ -1448,7 +1448,7 @@ export class DashboardExplorer {
     return ui === 'breadcrumbs' || ui === 'both'
   }
 
-typeFilterOptions = atom(get => {
+  typeFilterOptions = atom(get => {
     const root = get(this.root)
     if (!root) return []
     const config = get(this.dashboard.config)
@@ -1464,12 +1464,16 @@ typeFilterOptions = atom(get => {
     get => {
       const selected = get(this.#typeFilters)
       if (!selected) return undefined
-      const allowed = new Set(get(this.typeFilterOptions).map(option => option.type))
+      const allowed = new Set(
+        get(this.typeFilterOptions).map(option => option.type)
+      )
       const next = selected.filter(type => allowed.has(type))
       return next.length > 0 ? next : undefined
     },
     (get, set, type: string) => {
-      const allowed = new Set(get(this.typeFilterOptions).map(option => option.type))
+      const allowed = new Set(
+        get(this.typeFilterOptions).map(option => option.type)
+      )
       if (!allowed.has(type)) return
       const current = get(this.typeFilters)
       if (!current) {
@@ -1494,7 +1498,9 @@ typeFilterOptions = atom(get => {
       return excluded.length > 0 ? excluded : undefined
     },
     (get, set, type: string) => {
-      const allowed = new Set(get(this.typeFilterOptions).map(option => option.type))
+      const allowed = new Set(
+        get(this.typeFilterOptions).map(option => option.type)
+      )
       if (!allowed.has(type)) return
       const current = get(this.#experimentalExcludedTypes)
       const next = current.includes(type)
@@ -1515,7 +1521,9 @@ typeFilterOptions = atom(get => {
 
   // Experimental: include only a single type (exclude all others)
   experimentalIncludeOnlyType = atom(null, (get, set, type: string) => {
-    const allowed = new Set(get(this.typeFilterOptions).map(option => option.type))
+    const allowed = new Set(
+      get(this.typeFilterOptions).map(option => option.type)
+    )
     if (!allowed.has(type)) return
     const allTypes = get(this.typeFilterOptions).map(option => option.type)
     const excluded = allTypes.filter(t => t !== type)
@@ -1875,8 +1883,10 @@ typeFilterOptions = atom(get => {
     if (!root && !allRoots) return emptyExplorerItemRowsState()
     const locale = allRoots ? undefined : get(this.selectedLocale)
     const searchAll = Boolean(searchStarted && this.searchDepth === 'all')
-    const hasExperimentalFilters = get(this.#experimentalExcludedTypes).length > 0
-    const flatList = this.conditionScope === 'flat' || searchAll || hasExperimentalFilters
+    const hasExperimentalFilters =
+      get(this.#experimentalExcludedTypes).length > 0
+    const flatList =
+      this.conditionScope === 'flat' || searchAll || hasExperimentalFilters
     const parentId = flatList ? undefined : (location.parentId ?? null)
     const select = {
       id: Entry.id,

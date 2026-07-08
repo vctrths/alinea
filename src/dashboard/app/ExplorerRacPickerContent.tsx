@@ -234,7 +234,7 @@ function ExplorerRacDisplayRow({
       onPointerDownCapture={onRowPointerDown}
       onPointerUpCapture={onRowPointerUp}
     >
-        <Cell className={styles.RacPickerTable.selectionCell()}>
+      <Cell className={styles.RacPickerTable.selectionCell()}>
         {partialSelection ? (
           <span className={styles.RacPickerTable.dot()} />
         ) : selectable ? (

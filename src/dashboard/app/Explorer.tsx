@@ -1,5 +1,12 @@
 import {Badge} from '#/dashboard/app/Badge.js'
-import {Button, Icon, Popover, SearchField, Checkbox, Link} from '#/components.js'
+import {
+  Button,
+  Icon,
+  Popover,
+  SearchField,
+  Checkbox,
+  Link
+} from '#/components.js'
 import {ViewToggle} from '#/dashboard/app/ViewToggle.js'
 import styler from '@alinea/styler'
 import {useAtom, useAtomValue, useSetAtom} from 'jotai'
@@ -467,7 +474,9 @@ function ExplorerExperimentalControlsButton({
     <DialogTrigger>
       <Button size="small" appearance="outline" style={{height: 32}}>
         {showBadge && (
-          <Badge size="small" style={{padding: '0 8px'}}>{includedCount}</Badge>
+          <Badge size="small" style={{padding: '0 8px'}}>
+            {includedCount}
+          </Badge>
         )}
         <Icon icon={IcRoundFilterList} />
       </Button>
@@ -589,10 +598,7 @@ function ExplorerExperimentalControlsPopover({
             const excluded = excludedSet.has(filter.type)
             const canCheckAll = !excluded && excludedSet.size > 0
             return (
-              <div
-                key={filter.type}
-                className={styles.Popover.filterRow()}
-              >
+              <div key={filter.type} className={styles.Popover.filterRow()}>
                 <span onClick={e => e.stopPropagation()}>
                   <Checkbox
                     isSelected={!excluded}
@@ -602,7 +608,9 @@ function ExplorerExperimentalControlsPopover({
                 </span>
                 <div
                   className={styles.Popover.filterRowContent()}
-                  onClick={canCheckAll ? clearFilters : () => includeOnly(filter.type)}
+                  onClick={
+                    canCheckAll ? clearFilters : () => includeOnly(filter.type)
+                  }
                   role="option"
                   aria-selected={!excluded}
                   tabIndex={0}
@@ -619,7 +627,11 @@ function ExplorerExperimentalControlsPopover({
                   </span>
                   <span onClick={e => e.stopPropagation()}>
                     <Link
-                      onPress={canCheckAll ? clearFilters : () => includeOnly(filter.type)}
+                      onPress={
+                        canCheckAll
+                          ? clearFilters
+                          : () => includeOnly(filter.type)
+                      }
                       className={styles.Popover.onlyText()}
                       style={{textDecoration: 'none'}}
                       aria-label={

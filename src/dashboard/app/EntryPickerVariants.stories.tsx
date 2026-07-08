@@ -150,7 +150,10 @@ function Variant({
         <h2 style={variantTitleStyle}>{title}</h2>
         <p style={variantCopyStyle}>{description}</p>
       </div>
-      <ExplorerHeader explorer={explorer} controls={<ExplorerExperimentalToolbar explorer={explorer} />} />
+      <ExplorerHeader
+        explorer={explorer}
+        controls={<ExplorerExperimentalToolbar explorer={explorer} />}
+      />
       <ExplorerPickerContent
         explorer={explorer}
         navigationLabel={`${title} folders`}
@@ -216,7 +219,10 @@ function RacTableVariant({
         <h2 style={variantTitleStyle}>{title}</h2>
         <p style={variantCopyStyle}>{description}</p>
       </div>
-      <ExplorerHeader explorer={explorer} controls={<ExplorerExperimentalToolbar explorer={explorer} />} />
+      <ExplorerHeader
+        explorer={explorer}
+        controls={<ExplorerExperimentalToolbar explorer={explorer} />}
+      />
       <PickerContent
         explorer={explorer}
         navigationLabel={`${title} folders`}

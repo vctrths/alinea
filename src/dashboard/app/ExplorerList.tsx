@@ -98,7 +98,10 @@ function CurrentParentSelection({explorer}: CurrentParentSelectionProps) {
             className={styles.ExplorerList.currentSelection.checkbox()}
           />
         )}
-        <Icon icon={icon} className={styles.ExplorerList.currentSelection.icon()} />
+        <Icon
+          icon={icon}
+          className={styles.ExplorerList.currentSelection.icon()}
+        />
         <span className={styles.ExplorerList.currentSelection.copy()}>
           <span className={styles.ExplorerList.currentSelection.kicker()}>
             {selectable ? 'Current location' : 'Current location only'}
