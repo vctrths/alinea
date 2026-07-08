@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-products-beta",
+  "_type": "Page",
+  "_index": "a01",
+  "_root": "pages",
+  "title": "Beta product",
+  "path": "beta",
+  "summary": "Selectable child page. Search token: product beta.",
+  "category": "docs",
+  "featured": false,
+  "wordCount": 760
+}

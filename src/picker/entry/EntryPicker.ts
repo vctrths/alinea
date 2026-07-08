@@ -4,6 +4,12 @@ import type {Filter} from '#/core/Filter.js'
 import type {Graph, Projection} from '#/core/Graph.js'
 import type {Label} from '#/core/Label.js'
 import type {Picker} from '#/core/Picker.js'
+import type {
+  ExplorerInteractionOptions,
+  ExplorerInteractionPreset,
+  ExplorerAvailabilityMode,
+  ExplorerConditionScope
+} from '#/dashboard/store.js'
 import {Reference} from '#/core/Reference.js'
 import {Root, type RootI18n} from '#/core/Root.js'
 import {Type, type} from '#/core/Type.js'
@@ -42,8 +48,16 @@ export interface EntryPickerConditions {
   location?: DynamicOption<EditorLocation>
   /** Filter entries by a condition, this results in a flat list of options */
   condition?: DynamicOption<Filter<EntryFields>>
+  /** @internal How conditioned picker results should be scoped */
+  conditionScope?: ExplorerConditionScope
+  /** @internal Whether unavailable conditioned entries are hidden or disabled */
+  unavailableItems?: ExplorerAvailabilityMode
   /** @internal Enable entry picker navigation */
   enableNavigation?: boolean
+  /** @internal Prototype picker interaction variants */
+  interactionPreset?: ExplorerInteractionPreset
+  /** @internal Granular overrides for picker interaction prototypes */
+  interaction?: Partial<ExplorerInteractionOptions>
 }
 
 export interface EntryPickerOptions<

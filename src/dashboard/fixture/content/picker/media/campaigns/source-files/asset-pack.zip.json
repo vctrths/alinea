@@ -1,0 +1,14 @@
+{
+  "_id": "pick-media-source-asset-pack",
+  "_type": "MediaFile",
+  "_index": "a01",
+  "_i18nId": "pick-media-source-asset-pack",
+  "_root": "media",
+  "title": "asset-pack",
+  "location": "/asset-pack.zip",
+  "extension": ".zip",
+  "size": 1450000,
+  "hash": "pickassetpack",
+  "width": null,
+  "height": null
+}

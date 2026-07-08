@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-editorial-news-spring",
+  "_type": "Page",
+  "_index": "a00",
+  "_root": "pages",
+  "title": "Spring launch",
+  "path": "spring-launch",
+  "summary": "Nested selectable news page. Search token: launch newsroom.",
+  "category": "news",
+  "featured": true,
+  "wordCount": 640
+}

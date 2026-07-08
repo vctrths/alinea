@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-reference-faq",
+  "_type": "Page",
+  "_index": "a01",
+  "_root": "pages",
+  "title": "FAQ",
+  "path": "faq",
+  "summary": "Selectable reference FAQ. Search token: common questions.",
+  "category": "docs",
+  "featured": false,
+  "wordCount": 610
+}

@@ -1,0 +1,8 @@
+{
+  "_id": "pick-media-folder-empty",
+  "_type": "MediaLibrary",
+  "_index": "c00",
+  "_i18nId": "pick-media-folder-empty",
+  "_root": "media",
+  "title": "Empty library"
+}

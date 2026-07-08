@@ -1,0 +1,14 @@
+{
+  "_id": "pick-media-brand-guide",
+  "_type": "MediaFile",
+  "_index": "a01",
+  "_i18nId": "pick-media-brand-guide",
+  "_root": "media",
+  "title": "brand-guide",
+  "location": "/brand-guide.pdf",
+  "extension": ".pdf",
+  "size": 248000,
+  "hash": "pickbrand",
+  "width": null,
+  "height": null
+}

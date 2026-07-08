@@ -1,0 +1,8 @@
+{
+  "_id": "pick-media-folder-campaigns",
+  "_type": "MediaLibrary",
+  "_index": "b00",
+  "_i18nId": "pick-media-folder-campaigns",
+  "_root": "media",
+  "title": "Campaigns"
+}

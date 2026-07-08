@@ -1,0 +1,9 @@
+{
+  "_id": "pick-resource-product-spec-sheet",
+  "_type": "Resource",
+  "_index": "a00",
+  "_root": "pages",
+  "title": "Product spec sheet",
+  "path": "product-spec-sheet",
+  "summary": "Nested non-page resource inside Products. Search token: atlas download resource."
+}

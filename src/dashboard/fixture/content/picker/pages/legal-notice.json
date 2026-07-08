@@ -1,0 +1,9 @@
+{
+  "_id": "pick-resource-legal-notice",
+  "_type": "Resource",
+  "_index": "a04",
+  "_root": "pages",
+  "title": "Legal notice resource",
+  "path": "legal-notice-resource",
+  "summary": "Root non-page resource that should remain visible but unselectable in Page-only picker stories."
+}

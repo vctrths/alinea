@@ -1,0 +1,8 @@
+{
+  "_id": "pick-media-folder-source",
+  "_type": "MediaLibrary",
+  "_index": "a02",
+  "_i18nId": "pick-media-folder-source",
+  "_root": "media",
+  "title": "Source files"
+}

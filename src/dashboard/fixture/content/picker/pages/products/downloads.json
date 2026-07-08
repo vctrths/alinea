@@ -1,0 +1,8 @@
+{
+  "_id": "pick-folder-product-downloads",
+  "_type": "Folder",
+  "_index": "a03",
+  "_root": "pages",
+  "title": "Downloads",
+  "path": "downloads"
+}

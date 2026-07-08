@@ -1,0 +1,9 @@
+{
+  "_id": "pick-resource-press-kit",
+  "_type": "Resource",
+  "_index": "a00",
+  "_root": "pages",
+  "title": "Press kit resource",
+  "path": "press-kit-resource",
+  "summary": "Nested non-page resource near selectable news pages. Search token: launch resource."
+}

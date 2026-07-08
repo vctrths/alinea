@@ -1,0 +1,14 @@
+{
+  "_id": "pick-media-campaign-fall",
+  "_type": "MediaFile",
+  "_index": "a01",
+  "_i18nId": "pick-media-campaign-fall",
+  "_root": "media",
+  "title": "fall-banner",
+  "location": "/fall-banner.png",
+  "extension": ".png",
+  "size": 330000,
+  "hash": "pickfall",
+  "width": 1200,
+  "height": 628
+}

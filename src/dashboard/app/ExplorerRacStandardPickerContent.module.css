@@ -1,0 +1,284 @@
+.RacPicker {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
+  overflow: hidden;
+}
+
+.RacPicker-main {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--alinea-bg);
+}
+
+.RacPickerTable {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
+  flex-direction: column;
+  padding: 12px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--alinea-border) transparent;
+}
+
+.RacPickerTable-table {
+  width: 100%;
+  min-width: 720px;
+  max-width: none !important;
+  overflow: visible !important;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.RacPickerTable-table:focus-visible {
+  outline: 2px solid var(--alinea-ring);
+  outline-offset: -2px;
+}
+
+.RacPickerTable-table thead,
+.RacPickerTable-table tbody {
+  color: var(--alinea-fg);
+  font-size: var(--alinea-font-size-base);
+}
+
+.RacPickerTable-table thead {
+  background-color: var(--alinea-header);
+  font-weight: bold;
+}
+
+.RacPickerTable-column,
+.RacPickerTable-selectionCell,
+.RacPickerTable-titleCell,
+.RacPickerTable-pathCell,
+.RacPickerTable-typeCell {
+  padding: 6px 10px !important;
+  border-bottom: 1px solid var(--alinea-border) !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+}
+
+.RacPickerTable-column {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+}
+
+.RacPickerTable-column:first-child,
+.RacPickerTable-selectionCell:first-child {
+  border-left: 0 !important;
+}
+
+.RacPickerTable-column {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.RacPickerTable-table thead th,
+.RacPickerTable-table thead th:first-child,
+.RacPickerTable-table thead th:last-child {
+  border: 0 !important;
+}
+
+.RacPickerTable-column-selection,
+.RacPickerTable-selectionCell {
+  width: 34px;
+  min-width: 34px;
+  max-width: 34px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.RacPickerTable-column-path,
+.RacPickerTable-pathCell {
+  width: 220px;
+  min-width: 180px;
+  max-width: 260px;
+}
+
+.RacPickerTable-column-type,
+.RacPickerTable-typeCell {
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+}
+
+.RacPickerTable-entryName {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.RacPickerTable-titleCell[data-tree-column] .RacPickerTable-entryName {
+  padding-left: calc((var(--table-row-level, 1) - 1) * 20px);
+}
+
+.RacPickerTable-titleLine {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.RacPickerTable-titleCopy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.RacPickerTable-pathCell {
+  overflow: hidden;
+  color: var(--alinea-fg-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.RacPickerTable-path {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  color: var(--alinea-fg-muted);
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.RacPickerTable-path-label,
+.RacPickerTable-path-separator {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.RacPickerTable-path-separator {
+  flex: 0 0 auto;
+  opacity: 0.72;
+}
+
+.RacPickerTable-chevronWrap {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+}
+
+.RacPickerTable-chevron,
+.RacPickerTable-chevronSpacer {
+  flex: 0 0 auto;
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.RacPickerTable-chevron svg {
+  width: 22px;
+  height: 22px;
+}
+
+.RacPickerTable-icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: color-mix(in srgb, var(--alinea-fg) 72%, transparent);
+}
+
+.RacPickerTable-label {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.RacPickerTable-subtle {
+  margin-left: 48px;
+  color: var(--alinea-fg-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.RacPickerTable-row {
+  color: var(--alinea-fg);
+  background: var(--alinea-bg);
+  outline: none;
+}
+
+.RacPickerTable-row[data-unavailable='true'] {
+  color: color-mix(in srgb, var(--alinea-fg-disabled) 72%, transparent);
+  background: color-mix(in srgb, var(--alinea-bg-muted) 82%, var(--alinea-bg));
+}
+
+.RacPickerTable-row[data-selectable='true'],
+.RacPickerTable-row[data-expandable='true']:not([data-unavailable='true']) {
+  cursor: pointer;
+}
+
+.RacPickerTable-row[data-selectable='true']:hover,
+.RacPickerTable-row[data-selectable='true'][data-hovered],
+.RacPickerTable-row[data-expandable='true']:not([data-unavailable='true']):hover,
+.RacPickerTable-row[data-expandable='true']:not([data-unavailable='true'])[data-hovered] {
+  background: var(--alinea-bg-muted);
+}
+
+.RacPickerTable-row[data-selected] {
+  background: var(--alinea-primary-subtle-strong) !important;
+}
+
+.RacPickerTable-row[data-focus-visible] {
+  box-shadow: inset 0 0 0 2px var(--alinea-ring);
+}
+
+.RacPickerTable-row[data-unavailable='true'] .RacPickerTable-icon,
+.RacPickerTable-row[data-unavailable='true'] .RacPickerTable-label,
+.RacPickerTable-row[data-unavailable='true'] .RacPickerTable-path,
+.RacPickerTable-row[data-unavailable='true'] .RacPickerTable-pathCell {
+  opacity: 0.46;
+}
+
+.RacPickerTable-row[data-unselectable='true']:not([data-unavailable='true']):not(
+    [data-expandable='true']
+  ) {
+  background: color-mix(in srgb, var(--alinea-bg-muted) 25%, var(--alinea-bg));
+  cursor: default;
+}
+
+.RacPickerTable-row[aria-expanded='true'],
+.RacPickerTable-row[data-expanded='true'] {
+  background: color-mix(in srgb, var(--alinea-blue-600) 5%, var(--alinea-bg));
+}
+
+.RacPickerTable-empty {
+  padding: 24px;
+  color: var(--alinea-fg-muted);
+  text-align: center;
+}
+
+.RacPickerTable-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--alinea-accent);
+  flex-shrink: 0;
+}

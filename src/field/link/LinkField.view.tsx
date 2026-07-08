@@ -549,9 +549,13 @@ function LinkPickerAction({
   const handlesMultiple = Boolean(onPickMany && picker.handlesMultiple)
   const pickerProps: ExplorerOptions = {
     condition,
+    conditionScope: options.conditionScope,
     enableNavigation: options.enableNavigation ?? !pickingChildren,
+    interaction: options.interaction,
+    interactionPreset: options.interactionPreset,
     location,
     pickChildren: pickingChildren,
+    unavailableItems: options.unavailableItems,
     selectionMode: handlesMultiple ? 'multiple' : 'single',
     selectionBehavior: handlesMultiple ? 'toggle' : 'replace',
     initialSelection: initialSelection(value, selection),
@@ -661,9 +665,13 @@ function LinkPickerDialog({
   const handlesMultiple = Boolean(onPickMany && picker.handlesMultiple)
   const pickerProps: ExplorerOptions = {
     condition,
+    conditionScope: options.conditionScope,
     enableNavigation: options.enableNavigation ?? !pickingChildren,
+    interaction: options.interaction,
+    interactionPreset: options.interactionPreset,
     location,
     pickChildren: pickingChildren,
+    unavailableItems: options.unavailableItems,
     selectionMode: handlesMultiple ? 'multiple' : 'single',
     selectionBehavior: handlesMultiple ? 'toggle' : 'replace',
     initialSelection: initialSelection(value, selection),

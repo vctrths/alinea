@@ -15,6 +15,8 @@ interface CheckboxProps extends Omit<CheckboxPrimitiveProps, 'children'> {
   children?: ReactNode
   label?: ReactNode
   description?: ReactNode
+  isSelected?: boolean
+  onChange?: (isSelected: boolean) => void
 }
 
 export function Checkbox({

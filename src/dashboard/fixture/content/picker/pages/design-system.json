@@ -1,0 +1,9 @@
+{
+  "_id": "pick-resource-design-system",
+  "_type": "Resource",
+  "_index": "a03",
+  "_root": "pages",
+  "title": "Design system resource",
+  "path": "design-system-resource",
+  "summary": "Root non-page resource for testing unselectable entries in desktop and sidebar variants. Search token: atlas resource."
+}

@@ -29,6 +29,7 @@ import {assertUploadSize} from '#/core/media/UploadLimits.js'
 import type {PreviewMetadata} from '#/core/Preview.js'
 import {Permission, Policy, type Resource} from '#/core/Role.js'
 import {Root, type RootData, type RootI18n} from '#/core/Root.js'
+import {Schema} from '#/core/Schema.js'
 import {getScope} from '#/core/Scope.js'
 import {Section} from '#/core/Section.js'
 import {createFilePatch} from '#/core/source/FilePatch.js'
@@ -66,7 +67,7 @@ import {
   type MutationQueueEntry
 } from '../boot/MutationQueueEvent.js'
 import {nav, type DashboardRoute} from '../DashboardNav.js'
-import {LucideFile} from '../icons.js'
+import {LucideFile, LucideFolder} from '../icons.js'
 
 export const dashboardEntryOverviewColumnCount = 5
 
@@ -963,7 +964,11 @@ export class Dashboard {
               main: Entry.main
             }
           }),
-          entries: translations({select: Entry, includeSelf: true})
+          entries: translations({select: Entry, includeSelf: true}),
+          childrenAmount: {
+            edge: 'children' as const,
+            count: true as const
+          }
         },
         id: {in: ids},
         status: 'preferDraft'
@@ -1138,7 +1143,12 @@ export type ExplorerSort = {
   direction: ExplorerSortDirections
 }
 
-export type ExplorerTypeFilters = typeof MediaFile | typeof MediaLibrary
+export interface ExplorerTypeFilterOption {
+  type: string
+  label: string
+}
+
+export type ExplorerTypeFilters = Array<string> | undefined
 
 export type DashboardLocaleSelection = WritableAtom<
   string | null,
@@ -1146,10 +1156,115 @@ export type DashboardLocaleSelection = WritableAtom<
   void
 >
 
+export type ExplorerInteractionPreset = 'current' | 'desktop' | 'v1'
+
+export interface ExplorerInteractionOptions {
+  navigationUi: 'sidebar' | 'breadcrumbs' | 'both'
+  openFolderAction:
+    | 'none'
+    | 'rowAction'
+    | 'doubleClick'
+    | 'singleClick'
+    | 'childButton'
+  breadcrumbAction: 'click' | 'doubleClick'
+  confirmAction: 'button' | 'singleSelect'
+  showBackButton: boolean
+  showRootDropdown: boolean
+}
+
+export type ExplorerAvailabilityMode = 'hidden' | 'disabled'
+export type ExplorerConditionScope = 'flat' | 'rooted'
+
+interface ExplorerRow {
+  id: string
+  type: string
+  workspace: string
+  root: string
+  parents: Array<string>
+  locale: string | null
+}
+
+interface ExplorerItemRowsState {
+  rows: Array<ExplorerRow>
+  unselectableKeys: Set<Key>
+  unavailableKeys: Set<Key>
+  matchingDescendantKeys: Set<Key>
+  matchingDescendantCounts: Map<Key, number>
+}
+
+interface ExplorerNavigationTreeState {
+  active: boolean
+  selectableKeys: Set<Key>
+  matchingDescendantKeys: Set<Key>
+  deadEndKeys: Set<Key>
+}
+
+function explorerTypeFilterOptions(
+  schema: Schema,
+  root: Root
+): Array<ExplorerTypeFilterOption> {
+  const keyOfType = Schema.typeNames(schema)
+  const options: Array<ExplorerTypeFilterOption> = []
+  const seen = new Set<string>()
+
+  function visit(typeName: string) {
+    if (seen.has(typeName)) return
+    seen.add(typeName)
+    const schemaType = schema[typeName]
+    if (!schemaType) return
+    options.push({type: typeName, label: Type.label(schemaType)})
+    for (const child of Type.contains(schemaType)) {
+      const childName =
+        typeof child === 'string' ? child : keyOfType.get(child) ?? undefined
+      if (childName) visit(childName)
+    }
+  }
+
+  for (const contained of Root.contains(root)) {
+    const typeName =
+      typeof contained === 'string'
+        ? contained
+        : keyOfType.get(contained) ?? undefined
+    if (typeName) visit(typeName)
+  }
+
+  return options
+}
+
+function emptyExplorerItemRowsState(): ExplorerItemRowsState {
+  return {
+    rows: [],
+    unselectableKeys: new Set<Key>(),
+    unavailableKeys: new Set<Key>(),
+    matchingDescendantKeys: new Set<Key>(),
+    matchingDescendantCounts: new Map<Key, number>()
+  }
+}
+
+function emptyExplorerNavigationTreeState(): ExplorerNavigationTreeState {
+  return {
+    active: false,
+    selectableKeys: new Set<Key>(),
+    matchingDescendantKeys: new Set<Key>(),
+    deadEndKeys: new Set<Key>()
+  }
+}
+
+function resolveTypeFilter(
+  schema: Schema,
+  filter: Array<string> | undefined
+): Array<Type> | undefined {
+  if (!filter || filter.length === 0) return undefined
+  return filter.map(name => schema[name])
+}
+
 export interface ExplorerOptions {
   autoSelectFirstItem?: boolean
   condition?: Filter<EntryFields>
+  conditionScope?: ExplorerConditionScope
   enableNavigation?: boolean
+  interactionPreset?: ExplorerInteractionPreset
+  interaction?: Partial<ExplorerInteractionOptions>
   hideResultsUntilSearch?: boolean
   location?: ExplorerLocation
   mode?: 'browse' | 'search'
@@ -1161,10 +1276,46 @@ export interface ExplorerOptions {
   showSelectionControls?: boolean
   initialSelection?: Array<string>
   searchDepth?: 'current' | 'all'
+  unavailableItems?: ExplorerAvailabilityMode
   breadcrumbs?: boolean
   // initialSort?: ExplorerSort
   onAction?: WritableAtom<void, [entry: DashboardEntry], void>
   onConfirm?: (selection: Array<string>) => void
+}
+
+function explorerInteractionPreset(
+  preset: ExplorerInteractionPreset
+): ExplorerInteractionOptions {
+  switch (preset) {
+    case 'desktop':
+      return {
+        navigationUi: 'both',
+        openFolderAction: 'doubleClick',
+        breadcrumbAction: 'doubleClick',
+        confirmAction: 'button',
+        showBackButton: true,
+        showRootDropdown: false
+      }
+    case 'v1':
+      return {
+        navigationUi: 'breadcrumbs',
+        openFolderAction: 'childButton',
+        breadcrumbAction: 'click',
+        confirmAction: 'singleSelect',
+        showBackButton: true,
+        showRootDropdown: true
+      }
+    case 'current':
+    default:
+      return {
+        navigationUi: 'sidebar',
+        openFolderAction: 'none',
+        breadcrumbAction: 'click',
+        confirmAction: 'button',
+        showBackButton: true,
+        showRootDropdown: false
+      }
+  }
 }
 
 export class DashboardExplorer {
@@ -1176,6 +1327,10 @@ export class DashboardExplorer {
   #options: ExplorerOptions
   #selectedLocale: DashboardLocaleSelection
   selection
+  #typeFilters = atom<Array<string> | undefined>(undefined)
+  // Experimental: exclusion-model type filter (for stories/testing only)
+  #experimentalExcludedTypes = atom<Array<string>>([])
+  #selectionParents = atom(new Map<Key, Array<string>>())
   constructor(
     public dashboard: Dashboard,
     location: WritableAtom<
@@ -1227,6 +1382,17 @@ export class DashboardExplorer {
     return this.#options.mode ?? 'browse'
   }
 
+  get unavailableItems() {
+    if (this.conditionScope === 'flat') return 'hidden'
+    return this.#options.unavailableItems ?? 'hidden'
+  }
+
+  get conditionScope() {
+    if (this.#options.conditionScope) return this.#options.conditionScope
+    if (this.#options.condition && !this.#options.pickChildren) return 'flat'
+    return 'rooted'
+  }
+
   get searchDepth() {
     if (this.#options.searchDepth) return this.#options.searchDepth
     return this.mode === 'search' ? 'all' : 'current'
@@ -1243,30 +1409,242 @@ export class DashboardExplorer {
     return this.mode !== 'search'
   }
 
+  get interaction(): ExplorerInteractionOptions {
+    const preset = this.#options.interactionPreset ?? 'current'
+    const defaults = explorerInteractionPreset(preset)
+    return {...defaults, ...this.#options.interaction}
+  }
+
   get hasRowAction() {
-    return Boolean(this.#options.onAction)
+    const {openFolderAction, confirmAction} = this.interaction
+    return (
+      Boolean(this.#options.onAction) ||
+      openFolderAction === 'rowAction' ||
+      confirmAction === 'singleSelect'
+    )
+  }
+
+  get hasDoubleClickAction() {
+    return this.interaction.openFolderAction === 'doubleClick'
+  }
+
+  get hasChildButtonAction() {
+    return this.interaction.openFolderAction === 'childButton'
   }
 
   get breadcrumbs() {
     return this.#options.breadcrumbs ?? false
   }
 
+  get showsSidebarNavigation() {
+    if (this.#options.enableNavigation === false) return false
+    const ui = this.interaction.navigationUi
+    return ui === 'sidebar' || ui === 'both'
+  }
+
+  get showsBreadcrumbNavigation() {
+    if (this.#options.enableNavigation === false) return false
+    const ui = this.interaction.navigationUi
+    return ui === 'breadcrumbs' || ui === 'both'
+  }
+
+typeFilterOptions = atom(get => {
+    const root = get(this.root)
+    if (!root) return []
+    const config = get(this.dashboard.config)
+    const workspaceConfig = config.workspaces[root.workspace.key]
+    if (!workspaceConfig) return []
+    const rootConfig = workspaceConfig[root.key]
+    if (!rootConfig) return []
+    return explorerTypeFilterOptions(config.schema, rootConfig)
+  })
+
+  // Production: inclusion-model type filter (original behavior)
+  typeFilters = atom(
+    get => {
+      const selected = get(this.#typeFilters)
+      if (!selected) return undefined
+      const allowed = new Set(get(this.typeFilterOptions).map(option => option.type))
+      const next = selected.filter(type => allowed.has(type))
+      return next.length > 0 ? next : undefined
+    },
+    (get, set, type: string) => {
+      const allowed = new Set(get(this.typeFilterOptions).map(option => option.type))
+      if (!allowed.has(type)) return
+      const current = get(this.typeFilters)
+      if (!current) {
+        set(this.#typeFilters, [type])
+        return
+      }
+      const next = current.includes(type)
+        ? current.filter(item => item !== type)
+        : [...current, type]
+      set(this.#typeFilters, next.length > 0 ? next : undefined)
+    }
+  )
+
+  clearTypeFilters = atom(null, (_get, set) => {
+    set(this.#typeFilters, undefined)
+  })
+
+  // Experimental: exclusion-model type filter (for stories/testing only)
+  experimentalExcludedTypes = atom(
+    get => {
+      const excluded = get(this.#experimentalExcludedTypes)
+      return excluded.length > 0 ? excluded : undefined
+    },
+    (get, set, type: string) => {
+      const allowed = new Set(get(this.typeFilterOptions).map(option => option.type))
+      if (!allowed.has(type)) return
+      const current = get(this.#experimentalExcludedTypes)
+      const next = current.includes(type)
+        ? current.filter(item => item !== type)
+        : [...current, type]
+      set(this.#experimentalExcludedTypes, next)
+    }
+  )
+
+  // Experimental: included types (computed: all types minus excluded)
+  experimentalIncludedTypes = atom(get => {
+    const options = get(this.typeFilterOptions)
+    const excluded = new Set(get(this.#experimentalExcludedTypes))
+    return options
+      .filter(option => !excluded.has(option.type))
+      .map(option => option.type)
+  })
+
+  // Experimental: include only a single type (exclude all others)
+  experimentalIncludeOnlyType = atom(null, (get, set, type: string) => {
+    const allowed = new Set(get(this.typeFilterOptions).map(option => option.type))
+    if (!allowed.has(type)) return
+    const allTypes = get(this.typeFilterOptions).map(option => option.type)
+    const excluded = allTypes.filter(t => t !== type)
+    set(this.#experimentalExcludedTypes, excluded)
+  })
+
+  experimentalClearTypeFilters = atom(null, (_get, set) => {
+    set(this.#experimentalExcludedTypes, [])
+  })
+
   onAction = atom(null, (get, set, entry: DashboardEntry) => {
-    if (this.#options.onAction) {
+    const unselectable = get(this.unselectableKeys).has(entry.id)
+    const unavailable = get(this.unavailableKeys).has(entry.id)
+    if (this.#options.onAction && !unselectable) {
       set(this.#options.onAction, entry)
       return
     }
     const {data} = get(entry.data)
-    if (data && get(data.hasChildren)) {
+    const hasChildren = data ? get(data.hasChildren) : false
+    if (
+      this.interaction.openFolderAction === 'rowAction' &&
+      hasChildren &&
+      !unavailable
+    ) {
       const location = get(this.location)
       set(this.location, {...location, parentId: entry.id})
+      return
+    }
+    if (this.interaction.confirmAction === 'singleSelect' && !unselectable) {
+      set(this.selection, new Set<Key>([entry.id]))
+      this.#options.onConfirm?.([entry.id])
     }
   })
 
-  onConfirm = atom(null, (get, set) => {
+  onOpen = atom(null, (get, set, entry: DashboardEntry) => {
+    if (get(this.unavailableKeys).has(entry.id)) return
+    const {data} = get(entry.data)
+    const hasChildren = data ? get(data.hasChildren) : false
+    if (!hasChildren) return
+    const location = get(this.location)
+    set(this.location, {...location, parentId: entry.id})
+  })
+
+  onNavigateTreeEntry = atom(null, (get, set, entryId: string | undefined) => {
+    if (!entryId) {
+      const location = get(this.location)
+      set(this.location, {...location, parentId: undefined})
+      return
+    }
+    const entry = this.dashboard.entries(entryId)
+    const {data} = get(entry.data)
+    if (!data) return
+    const type = get(data.type)
+    const canNavigate = get(data.hasChildren) || Boolean(type.contains?.length)
+    if (!canNavigate) return
+    const treeState = get(this.navigationTreeState)
+    if (treeState.active && !treeState.matchingDescendantKeys.has(entryId))
+      return
+    const location = get(this.location)
+    set(this.location, {...location, parentId: entryId})
+  })
+
+  onConfirm = atom(null, (get, _set) => {
     const selection = get(this.selection)
-    if (this.#options.onConfirm)
-      this.#options.onConfirm([...selection].map(String))
+    const unselectableKeys = get(this.unselectableKeys)
+    if (selection !== 'all' && this.#options.onConfirm)
+      this.#options.onConfirm(
+        [...selection].filter(key => !unselectableKeys.has(key)).map(String)
+      )
+  })
+
+  setSelection = atom(null, (get, set, selection: 'all' | Set<Key>) => {
+    const unselectableKeys = get(this.unselectableKeys)
+    const selectableSelection =
+      selection === 'all'
+        ? new Set<Key>(
+            get(this.itemRowsState).rows.flatMap(row =>
+              unselectableKeys.has(row.id) ? [] : [row.id]
+            )
+          )
+        : new Set<Key>([...selection].filter(key => !unselectableKeys.has(key)))
+    selection = selectableSelection
+    const prevSelection = get(this.selection)
+    const prevParents = get(this.#selectionParents)
+    const newParents = new Map(prevParents)
+    const rows = get(this.itemRowsState).rows
+    const rowMap = new Map(rows.map(r => [r.id, r]))
+    if (prevSelection !== 'all') {
+      for (const key of prevSelection) {
+        if (!selection.has(key)) newParents.delete(key)
+      }
+    }
+    for (const key of selection) {
+      if (!prevParents.has(key)) {
+        const row = rowMap.get(String(key))
+        if (row) {
+          newParents.set(key, row.parents)
+        } else {
+          const entry = this.dashboard.entries(String(key))
+          const state = get(entry.data)
+          if (state.data) {
+            const parentIds = get(state.data.parentIds)
+            if (parentIds.length > 0) newParents.set(key, parentIds)
+          }
+        }
+      }
+    }
+    set(this.#selectionParents, newParents)
+    set(this.selection, selection)
+    if (this.selectionMode !== 'single') return
+    if (
+      this.interaction.openFolderAction === 'singleClick' &&
+      selection.size === 1
+    ) {
+      const [id] = selection
+      const entry = this.dashboard.entries(String(id))
+      const {data} = get(entry.data)
+      if (data && get(data.hasChildren)) {
+        const location = get(this.location)
+        set(this.location, {...location, parentId: entry.id})
+        return
+      }
+    }
+    if (
+      this.interaction.confirmAction === 'singleSelect' &&
+      selection.size === 1
+    ) {
+      this.#options.onConfirm?.([...selection].map(String))
+    }
   })
 
   search = atom('')
@@ -1316,15 +1694,13 @@ export class DashboardExplorer {
       set(this.#sort, {sortBy, direction})
     }
   )
-  #filter = atom<ExplorerTypeFilters | undefined>(undefined)
   filter = atom(
-    get => get(this.#filter),
-    (get, set, filterBy: ExplorerTypeFilters) => {
-      const filter = get(this.#filter)
-      const payload = filter === filterBy ? undefined : filterBy
-      set(this.#filter, payload)
+    get => get(this.typeFilters),
+    (get, set, filterBy: string) => {
+      set(this.typeFilters, filterBy)
     }
   )
+
   location = atom(
     get => get(this.#location),
     (get, set, update: SetStateAction<ExplorerLocation>) => {
@@ -1471,7 +1847,7 @@ export class DashboardExplorer {
     }
   )
 
-  items = atom(async get => {
+  itemRowsQuery = atom(async get => {
     get(this.dashboard.sha) // subscribe to content changes, todo: refine
     const location = get(this.location)
     const db = get(this.dashboard.db)
@@ -1480,6 +1856,7 @@ export class DashboardExplorer {
     const sort = get(this.sort)
     const filter = get(this.filter)
     const searchStarted = Boolean(search.trim())
+    const config = get(this.dashboard.config)
     const fieldMap: Record<ExplorerSortBy, Expr<string | number>> = {
       title: Entry.title,
       path: Entry.path,
@@ -1492,22 +1869,169 @@ export class DashboardExplorer {
       [sort.direction]: fieldToSort,
       caseSensitive: fieldToSort !== Entry.id
     }
-    if (this.hideResultsUntilSearch && !searchStarted) return []
+    if (this.hideResultsUntilSearch && !searchStarted)
+      return emptyExplorerItemRowsState()
     const allRoots = this.rootScope === 'workspace'
-    if (!root && !allRoots) return []
+    if (!root && !allRoots) return emptyExplorerItemRowsState()
     const locale = allRoots ? undefined : get(this.selectedLocale)
     const searchAll = Boolean(searchStarted && this.searchDepth === 'all')
-    const flatList =
-      (Boolean(this.#options.condition) && !this.#options.pickChildren) ||
-      searchAll
-    const policy = get(this.dashboard.policy)
-    const children = await db.find({
+    const hasExperimentalFilters = get(this.#experimentalExcludedTypes).length > 0
+    const flatList = this.conditionScope === 'flat' || searchAll || hasExperimentalFilters
+    const parentId = flatList ? undefined : (location.parentId ?? null)
+    const select = {
+      id: Entry.id,
+      type: Entry.type,
+      workspace: Entry.workspace,
+      root: Entry.root,
+      parents: Entry.parents,
+      locale: Entry.locale
+    }
+    const baseQuery = {
       locale,
       search: searchStarted ? search : undefined,
       workspace: location.workspace,
       root: allRoots ? undefined : location.root,
-      parentId: flatList ? undefined : (location.parentId ?? null),
-      filter: this.#options.condition,
+      parentId,
+      select,
+      orderBy,
+      status: 'preferDraft' as const,
+      type: resolveTypeFilter(config.schema, filter),
+      groupBy: Entry.id
+    }
+    const policy = get(this.dashboard.policy)
+    const condition = this.#options.condition
+    if (!condition) {
+      const rows = await db.find(baseQuery)
+      return {
+        ...emptyExplorerItemRowsState(),
+        rows: rows.filter(child => policy.canRead(child))
+      }
+    }
+    if (flatList) {
+      const rows = await db.find({...baseQuery, filter: condition})
+      return {
+        ...emptyExplorerItemRowsState(),
+        rows: rows.filter(child => policy.canRead(child))
+      }
+    }
+    const rows = await db.find(baseQuery)
+    const readableRows = rows.filter(child => policy.canRead(child))
+    const readableRowIds = new Set(readableRows.map(child => child.id))
+    const availableRows = await db.find({...baseQuery, filter: condition})
+    const readableAvailableRows = availableRows.filter(child =>
+      policy.canRead(child)
+    )
+    const availableIds = new Set(readableAvailableRows.map(child => child.id))
+    const matchingDescendantCounts = new Map<Key, number>()
+    const allAvailableRows = await db.find({
+      ...baseQuery,
+      parentId: undefined,
+      filter: condition
+    })
+    for (const match of allAvailableRows) {
+      if (!policy.canRead(match)) continue
+      for (const parentId of match.parents) {
+        if (!readableRowIds.has(parentId)) continue
+        matchingDescendantCounts.set(
+          parentId,
+          (matchingDescendantCounts.get(parentId) ?? 0) + 1
+        )
+      }
+    }
+    const matchingDescendantKeys = new Set<Key>(matchingDescendantCounts.keys())
+    const visibleRows =
+      this.unavailableItems === 'hidden'
+        ? readableRows.filter(
+            child =>
+              availableIds.has(child.id) || matchingDescendantKeys.has(child.id)
+          )
+        : readableRows
+    const unselectableKeys = new Set<Key>(
+      visibleRows
+        .filter(child => !availableIds.has(child.id))
+        .map(child => child.id)
+    )
+    const unavailableKeys = new Set<Key>(
+      visibleRows
+        .filter(
+          child =>
+            !availableIds.has(child.id) && !matchingDescendantKeys.has(child.id)
+        )
+        .map(child => child.id)
+    )
+    return {
+      rows: visibleRows,
+      unselectableKeys,
+      unavailableKeys,
+      matchingDescendantKeys,
+      matchingDescendantCounts
+    }
+  })
+
+  itemRowsState = unwrap(
+    this.itemRowsQuery,
+    previous => previous ?? emptyExplorerItemRowsState()
+  )
+
+  unselectableKeys = atom(get => {
+    const {unselectableKeys} = get(this.itemRowsState)
+    return unselectableKeys
+  })
+
+  unavailableKeys = atom(get => {
+    const {unavailableKeys} = get(this.itemRowsState)
+    return unavailableKeys
+  })
+
+  matchingDescendantKeys = atom(get => {
+    const {matchingDescendantKeys} = get(this.itemRowsState)
+    return matchingDescendantKeys
+  })
+
+  matchingDescendantCounts = atom(get => {
+    const {matchingDescendantCounts} = get(this.itemRowsState)
+    return matchingDescendantCounts
+  })
+
+  partialSelectionKeys = atom(get => {
+    const selection = get(this.selection)
+    if (selection === 'all' || selection.size === 0) return new Set<Key>()
+    const selectionParents = get(this.#selectionParents)
+    const partialKeys = new Set<Key>()
+    for (const [, parents] of selectionParents) {
+      for (const parentId of parents) {
+        partialKeys.add(parentId)
+      }
+    }
+    return partialKeys
+  })
+
+  currentParentSelection = atom(async get => {
+    if (!this.hasSelection) return undefined
+    const location = get(this.location)
+    const parentId = location.parentId
+    if (!parentId) return undefined
+    const search = get(this.search)
+    const searchAll = Boolean(search.trim() && this.searchDepth === 'all')
+    if (this.conditionScope === 'flat' || searchAll) return undefined
+    const parent = this.dashboard.entries(parentId)
+    const {data} = get(parent.data)
+    if (!data) return undefined
+    const condition = this.#options.condition
+    const filter = get(this.filter)
+    if (!condition && !filter) return {entry: parent, selectable: true}
+    const root = get(this.root)
+    if (!root) return undefined
+    const db = get(this.dashboard.db)
+    const config = get(this.dashboard.config)
+    const policy = get(this.dashboard.policy)
+    const rows = await db.find({
+      id: parentId,
+      locale: get(this.selectedLocale),
+      workspace: location.workspace,
+      root: location.root,
+      filter: condition,
+      type: resolveTypeFilter(config.schema, filter),
       select: {
         id: Entry.id,
         type: Entry.type,
@@ -1516,14 +2040,91 @@ export class DashboardExplorer {
         parents: Entry.parents,
         locale: Entry.locale
       },
-      orderBy,
-      status: 'preferDraft',
-      type: filter,
+      status: 'preferDraft' as const,
       groupBy: Entry.id
     })
-    const entries = children
-      .filter(child => policy.canRead(child))
-      .map(child => this.dashboard.entries(child.id))
+    const [row] = rows
+    return {entry: parent, selectable: Boolean(row && policy.canRead(row))}
+  })
+
+  navigationTreeStateQuery = atom(async get => {
+    get(this.dashboard.sha)
+    const condition = this.#options.condition
+    const search = get(this.search)
+    const searchStarted = Boolean(search.trim())
+    if (!condition && !searchStarted) return emptyExplorerNavigationTreeState()
+    const location = get(this.location)
+    const root = get(this.root)
+    if (!root) return emptyExplorerNavigationTreeState()
+    const db = get(this.dashboard.db)
+    const config = get(this.dashboard.config)
+    const policy = get(this.dashboard.policy)
+    const filter = get(this.filter)
+    const locale = get(this.selectedLocale)
+    const select = {
+      id: Entry.id,
+      type: Entry.type,
+      workspace: Entry.workspace,
+      root: Entry.root,
+      parents: Entry.parents,
+      locale: Entry.locale
+    }
+    const rows = await db.find({
+      locale,
+      search: searchStarted ? search : undefined,
+      workspace: location.workspace,
+      root: location.root,
+      parentId: undefined,
+      filter: condition,
+      select,
+      status: 'preferDraft' as const,
+      type: resolveTypeFilter(config.schema, filter),
+      groupBy: Entry.id
+    })
+    const readableRows = rows.filter(row => policy.canRead(row))
+    const selectableKeys = new Set<Key>(readableRows.map(row => row.id))
+    const matchingDescendantKeys = new Set<Key>()
+    for (const row of readableRows) {
+      for (const parentId of row.parents) matchingDescendantKeys.add(parentId)
+    }
+    const allRows = await db.find({
+      locale,
+      workspace: location.workspace,
+      root: location.root,
+      parentId: undefined,
+      select: {
+        ...select,
+        childrenAmount: {edge: 'children' as const, count: true as const}
+      },
+      status: 'preferDraft' as const,
+      type: resolveTypeFilter(config.schema, filter),
+      groupBy: Entry.id
+    })
+    const deadEndKeys = new Set<Key>()
+    for (const row of allRows) {
+      if (!policy.canRead(row)) continue
+      const type = get(this.dashboard.type(row.type))
+      const canContain = Boolean(type.contains?.length)
+      const canNavigate = row.childrenAmount > 0 || canContain
+      if (canNavigate && !matchingDescendantKeys.has(row.id))
+        deadEndKeys.add(row.id)
+    }
+    return {
+      active: true,
+      selectableKeys,
+      matchingDescendantKeys,
+      deadEndKeys
+    }
+  })
+
+  navigationTreeState = unwrap(
+    this.navigationTreeStateQuery,
+    previous => previous ?? emptyExplorerNavigationTreeState()
+  )
+
+  items = atom(async get => {
+    const {rows} = await get(this.itemRowsQuery)
+    const entries = rows.map(child => this.dashboard.entries(child.id))
     await Promise.all(entries.map(entry => get(entry.preload)))
     return entries
   })
@@ -1940,6 +2541,7 @@ interface EntryData {
   workspace: string
   root: string
   hasChildren: boolean
+  childrenAmount: number
   parents: Array<{
     id: string
     path: string
@@ -2084,6 +2686,7 @@ export class DashboardEntryData {
   workspaceKey: Atom<string>
   rootKey: Atom<string>
   hasChildren: Atom<boolean>
+  childrenAmount: Atom<number>
   type: Atom<DashboardType>
   currentEntry: Atom<Promise<Entry | null> | Entry | null>
   overviewCells: Atom<Array<DashboardEntryOverviewCell>>
@@ -2112,6 +2715,7 @@ export class DashboardEntryData {
     this.workspaceKey = atom(get => get(data).workspace)
     this.rootKey = atom(get => get(data).root)
     this.hasChildren = atom(get => get(data).hasChildren)
+    this.childrenAmount = atom(get => get(data).childrenAmount)
     this.type = atom(get => get(this.dashboard.type(get(data).type)))
     this.defaultView = atom(get => {
       if (get(this.hasChildren)) return 'overview'
@@ -2457,7 +3061,12 @@ export class DashboardEntryData {
     return get(this.entryData).parents
   })
 
-  icon = atom(get => get(this.type).icon)
+  icon = atom(get => {
+    const configuredIcon = get(this.type).icon
+    if (configuredIcon) return configuredIcon
+    const hasChildren = get(this.hasChildren)
+    return hasChildren ? LucideFolder : LucideFile
+  })
 
   children = swr(
     atom(async get => {

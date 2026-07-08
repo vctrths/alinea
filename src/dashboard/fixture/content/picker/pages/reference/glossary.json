@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-reference-glossary",
+  "_type": "Page",
+  "_index": "a00",
+  "_root": "pages",
+  "title": "Glossary",
+  "path": "glossary",
+  "summary": "Selectable reference page. Search token: glossary atlas.",
+  "category": "docs",
+  "featured": false,
+  "wordCount": 700
+}

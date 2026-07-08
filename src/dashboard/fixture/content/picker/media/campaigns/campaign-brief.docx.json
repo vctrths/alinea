@@ -1,0 +1,14 @@
+{
+  "_id": "pick-media-campaign-brief",
+  "_type": "MediaFile",
+  "_index": "a03",
+  "_i18nId": "pick-media-campaign-brief",
+  "_root": "media",
+  "title": "campaign-brief",
+  "location": "/campaign-brief.docx",
+  "extension": ".docx",
+  "size": 76000,
+  "hash": "pickbrief",
+  "width": null,
+  "height": null
+}

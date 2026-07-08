@@ -8,7 +8,7 @@ import {
 } from '../icons.js'
 
 const Page = Config.document('Page', {
-  contains: ['Page', 'Folder'],
+  contains: ['Page', 'Folder', 'Resource'],
   fields: {
     title: Field.text('Title', {width: 0.5}),
     path: Field.path('Path', {width: 0.5}),
@@ -146,10 +146,21 @@ const Page = Config.document('Page', {
 })
 
 const Folder = Config.document('Folder', {
-  contains: ['Page', 'Folder'],
+  contains: ['Page', 'Folder', 'Resource'],
   fields: {
     title: Field.text('Title'),
     path: Field.path('Path')
+  }
+})
+
+const Resource = Config.document('Resource', {
+  fields: {
+    title: Field.text('Title'),
+    path: Field.path('Path'),
+    summary: Field.text('Summary', {
+      multiline: true,
+      placeholder: 'Describe this non-page resource'
+    })
   }
 })
 
@@ -192,6 +203,18 @@ const many = Config.workspace('Many entries', {
   }
 })
 
+const picker = Config.workspace('Picker test matrix', {
+  source: 'content/picker',
+  icon: IcOutlineGridView,
+  roots: {
+    pages: Config.root('Pages', {
+      contains: ['Page', 'Folder', 'Resource'],
+      openByDefault: true
+    }),
+    media: Config.media()
+  }
+})
+
 const i18n = Config.workspace('Multi language', {
   source: 'content/i18n',
   icon: IcRoundTranslate,
@@ -221,11 +244,12 @@ const statuses = Config.workspace('Statuses', {
 
 export const cms = createCMS({
   enableDrafts: true,
-  schema: {Page, Folder},
+  schema: {Page, Folder, Resource},
   workspaces: {
     simple,
     nested,
     many,
+    picker,
     i18n,
     statuses
   }

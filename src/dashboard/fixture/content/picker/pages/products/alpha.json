@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-products-alpha",
+  "_type": "Page",
+  "_index": "a00",
+  "_root": "pages",
+  "title": "Alpha product",
+  "path": "alpha",
+  "summary": "Selectable child page inside an unselectable folder. Search token: atlas product alpha.",
+  "category": "docs",
+  "featured": true,
+  "wordCount": 840
+}

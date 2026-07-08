@@ -86,6 +86,17 @@
       var(--alinea-blue-600)
     );
   }
+
+  &[data-contains-matches] .ExplorerCards-item-card {
+    cursor: pointer;
+    border-color: color-mix(in srgb, var(--alinea-blue-600) 38%, var(--alinea-border));
+  }
+
+  &[data-unavailable]:not([data-contains-matches]) .ExplorerCards-item-card {
+    cursor: not-allowed;
+    opacity: 0.48;
+    box-shadow: none;
+  }
 }
 
 .ExplorerCards-item-checkbox {
@@ -93,6 +104,19 @@
   top: 10px;
   left: 10px;
   z-index: 2;
+}
+
+.ExplorerCards-item-dot {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--alinea-accent);
+  box-shadow: 0 0 0 2px var(--alinea-bg);
 }
 
 .ExplorerCards-item-drag-handle {

@@ -1,0 +1,14 @@
+{
+  "_id": "pick-media-source-psd",
+  "_type": "MediaFile",
+  "_index": "a00",
+  "_i18nId": "pick-media-source-psd",
+  "_root": "media",
+  "title": "banner-source",
+  "location": "/banner-source.psd",
+  "extension": ".psd",
+  "size": 2100000,
+  "hash": "pickpsd",
+  "width": null,
+  "height": null
+}

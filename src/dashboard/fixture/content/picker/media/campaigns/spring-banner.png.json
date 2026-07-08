@@ -1,0 +1,14 @@
+{
+  "_id": "pick-media-campaign-spring",
+  "_type": "MediaFile",
+  "_index": "a00",
+  "_i18nId": "pick-media-campaign-spring",
+  "_root": "media",
+  "title": "spring-banner",
+  "location": "/spring-banner.png",
+  "extension": ".png",
+  "size": 340000,
+  "hash": "pickspring",
+  "width": 1200,
+  "height": 628
+}

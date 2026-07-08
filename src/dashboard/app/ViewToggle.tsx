@@ -6,12 +6,14 @@ export type ExplorerView = 'card' | 'row'
 
 interface ViewToggleProps {
   setView: (view: ExplorerView) => void
+  size?: 'default' | 'small'
   view: ExplorerView
 }
 
-export function ViewToggle({setView, view}: ViewToggleProps) {
+export function ViewToggle({setView, size, view}: ViewToggleProps) {
   return (
     <ToggleButtonGroup
+      size={size}
       aria-label="Explorer view"
       selectionMode="single"
       disallowEmptySelection
@@ -20,10 +22,10 @@ export function ViewToggle({setView, view}: ViewToggleProps) {
         setView(keys.has('card') ? 'card' : 'row')
       }}
     >
-      <ToggleButton id="card">
+      <ToggleButton id="card" size={size}>
         <IcOutlineGridView data-slot="icon" />
       </ToggleButton>
-      <ToggleButton id="row">
+      <ToggleButton id="row" size={size}>
         <IcOutlineList data-slot="icon" />
       </ToggleButton>
     </ToggleButtonGroup>

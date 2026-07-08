@@ -1,0 +1,9 @@
+{
+  "_id": "pick-resource-pricing-table",
+  "_type": "Resource",
+  "_index": "a01",
+  "_root": "pages",
+  "title": "Pricing table resource",
+  "path": "pricing-table-resource",
+  "summary": "Nested non-page resource with no selectable children. Useful for checking unselectable rows in desktop navigation."
+}

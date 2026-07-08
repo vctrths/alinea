@@ -1,0 +1,14 @@
+{
+  "_id": "pick-media-logo",
+  "_type": "MediaFile",
+  "_index": "a00",
+  "_i18nId": "pick-media-logo",
+  "_root": "media",
+  "title": "logo",
+  "location": "/logo.svg",
+  "extension": ".svg",
+  "size": 1840,
+  "hash": "picklogo",
+  "width": 320,
+  "height": 160
+}

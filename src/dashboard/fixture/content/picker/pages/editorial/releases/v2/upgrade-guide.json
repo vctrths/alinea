@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-editorial-releases-v2-upgrade",
+  "_type": "Page",
+  "_index": "a00",
+  "_root": "pages",
+  "title": "Upgrade guide",
+  "path": "upgrade-guide",
+  "summary": "Third-level selectable page. Search token: atlas upgrade.",
+  "category": "docs",
+  "featured": true,
+  "wordCount": 1660
+}

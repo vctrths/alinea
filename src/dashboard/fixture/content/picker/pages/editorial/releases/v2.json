@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-editorial-releases-v2",
+  "_type": "Page",
+  "_index": "a00",
+  "_root": "pages",
+  "title": "Version 2.0 release",
+  "path": "v2",
+  "summary": "Nested selectable release notes. Search token: changelog v2.",
+  "category": "release",
+  "featured": true,
+  "wordCount": 1420
+}

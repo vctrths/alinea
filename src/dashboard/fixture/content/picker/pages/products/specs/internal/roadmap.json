@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-products-specs-internal-roadmap",
+  "_type": "Page",
+  "_index": "a00",
+  "_root": "pages",
+  "title": "Internal roadmap",
+  "path": "roadmap",
+  "summary": "Selectable page hidden behind multiple unselectable folders. Search token: atlas roadmap.",
+  "category": "news",
+  "featured": false,
+  "wordCount": 990
+}

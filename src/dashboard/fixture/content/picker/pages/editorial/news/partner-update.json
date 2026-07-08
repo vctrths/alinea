@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-editorial-news-partner",
+  "_type": "Page",
+  "_index": "a01",
+  "_root": "pages",
+  "title": "Partner update",
+  "path": "partner-update",
+  "summary": "Nested selectable partner page. Search token: partner newsroom.",
+  "category": "news",
+  "featured": false,
+  "wordCount": 520
+}

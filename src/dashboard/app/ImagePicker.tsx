@@ -59,7 +59,11 @@ function ImagePickerModalContent({label, options}: ExplorerModalProps) {
   const [explorer] = useState(() =>
     dashboard.explore(location, {
       ...options,
-      searchDepth: 'all'
+      searchDepth: 'all',
+      onConfirm(selection) {
+        options.onConfirm?.(selection)
+        modal.close()
+      }
     })
   )
   const onConfirm = useSetAtom(explorer.onConfirm)
@@ -69,7 +73,6 @@ function ImagePickerModalContent({label, options}: ExplorerModalProps) {
   function onSubmit() {
     startTransition(() => {
       onConfirm()
-      modal.close()
     })
   }
 

@@ -16,6 +16,56 @@
   pointer-events: none;
 }
 
+.ExplorerList-currentSelection {
+  flex: 0 0 auto;
+  padding: 12px 16px 0;
+}
+
+.ExplorerList-currentSelection-surface {
+  display: flex;
+  min-height: 44px;
+  box-sizing: border-box;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--alinea-border);
+  background: color-mix(in srgb, var(--alinea-bg-muted) 58%, var(--alinea-bg));
+}
+
+.ExplorerList-currentSelection-checkbox {
+  flex: 0 0 auto;
+}
+
+.ExplorerList-currentSelection-icon {
+  flex: 0 0 auto;
+  color: color-mix(in srgb, var(--alinea-fg) 70%, transparent);
+  font-size: 18px;
+}
+
+.ExplorerList-currentSelection-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ExplorerList-currentSelection-kicker {
+  color: var(--alinea-fg-muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.ExplorerList-currentSelection-label {
+  overflow: hidden;
+  color: var(--alinea-fg);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ExplorerList-drag-preview {
   display: inline-flex;
   align-items: center;

@@ -1,9 +1,9 @@
 import {Checkbox, Icon, Surface} from '#/components.js'
 import styler from '@alinea/styler'
 import {Size} from '@react-stately/virtualizer'
-import {useAtom, useAtomValue, useSetAtom} from 'jotai'
+import {useAtomValue, useSetAtom} from 'jotai'
 import {unwrap} from 'jotai/utils'
-import type {ComponentType, ReactNode} from 'react'
+import type {ComponentType, MouseEvent, ReactNode} from 'react'
 import {Fragment, memo, useMemo} from 'react'
 import {
   Button as AriaButton,
@@ -40,11 +40,26 @@ const cardLayoutOptions: GridLayoutOptions = {
 
 interface ExplorerCardItemProps {
   entry: DashboardEntry
+  containsMatches?: boolean
+  matchingDescendantCount?: number
+  partialSelection?: boolean
+  unavailable?: boolean
+  unselectable?: boolean
+  onDoubleClick?: (
+    entry: DashboardEntry,
+    event: MouseEvent<HTMLElement>
+  ) => void
   showSelectionControls: boolean
 }
 
 const ExplorerCardItem = memo(function ExplorerCardItem({
   entry,
+  containsMatches,
+  matchingDescendantCount,
+  partialSelection,
+  unavailable,
+  unselectable,
+  onDoubleClick,
   showSelectionControls
 }: ExplorerCardItemProps) {
   const {data} = useAtomValue(entry.data)
@@ -52,6 +67,12 @@ const ExplorerCardItem = memo(function ExplorerCardItem({
     return (
       <ExplorerCardLoadingItem
         entry={entry}
+        containsMatches={containsMatches}
+        matchingDescendantCount={matchingDescendantCount}
+        partialSelection={partialSelection}
+        unavailable={unavailable}
+        unselectable={unselectable}
+        onDoubleClick={onDoubleClick}
         showSelectionControls={showSelectionControls}
       />
     )
@@ -60,17 +81,38 @@ const ExplorerCardItem = memo(function ExplorerCardItem({
       entry={entry}
       data={data}
       showSelectionControls={showSelectionControls}
+      containsMatches={containsMatches}
+      matchingDescendantCount={matchingDescendantCount}
+      partialSelection={partialSelection}
+      unavailable={unavailable}
+      unselectable={unselectable}
+      onDoubleClick={onDoubleClick}
     />
   )
 })
 
 interface ExplorerCardLoadingItemProps {
   entry: DashboardEntry
+  containsMatches?: boolean
+  matchingDescendantCount?: number
+  partialSelection?: boolean
+  unavailable?: boolean
+  unselectable?: boolean
+  onDoubleClick?: (
+    entry: DashboardEntry,
+    event: MouseEvent<HTMLElement>
+  ) => void
   showSelectionControls: boolean
 }
 
 function ExplorerCardLoadingItem({
   entry,
+  containsMatches,
+  matchingDescendantCount,
+  partialSelection,
+  unavailable,
+  unselectable,
+  onDoubleClick,
   showSelectionControls
 }: ExplorerCardLoadingItemProps) {
   return (
@@ -79,8 +121,22 @@ function ExplorerCardLoadingItem({
       textValue="Loading entry"
       className={styles.ExplorerCards.item({loading: true})}
       aria-label="Loading entry"
+      data-contains-matches={containsMatches || undefined}
+      data-unavailable={unavailable || undefined}
+      data-unselectable={unselectable || undefined}
+      onDoubleClick={
+        onDoubleClick ? event => onDoubleClick(entry, event) : undefined
+      }
     >
-      {showSelectionControls && <ExplorerCardCheckbox label="Loading entry" />}
+      {showSelectionControls && (
+        <ExplorerCardSelectionControl
+          containsMatches={containsMatches}
+          label="Loading entry"
+          matchingDescendantCount={matchingDescendantCount}
+          partialSelection={partialSelection}
+          unselectable={unselectable}
+        />
+      )}
       <Surface className={styles.ExplorerCards.item.card()}>
         <div className={styles.ExplorerCards.entry()}>
           <div className={styles.ExplorerCards.entry.top()}>
@@ -106,12 +162,27 @@ function ExplorerCardLoadingItem({
 interface ExplorerCardLoadedItemProps {
   entry: DashboardEntry
   data: DashboardEntryData
+  containsMatches?: boolean
+  matchingDescendantCount?: number
+  partialSelection?: boolean
+  unavailable?: boolean
+  unselectable?: boolean
+  onDoubleClick?: (
+    entry: DashboardEntry,
+    event: MouseEvent<HTMLElement>
+  ) => void
   showSelectionControls: boolean
 }
 
 const ExplorerCardLoadedItem = memo(function ExplorerCardLoadedItem({
   entry,
   data,
+  containsMatches,
+  matchingDescendantCount,
+  partialSelection,
+  unavailable,
+  unselectable,
+  onDoubleClick,
   showSelectionControls
 }: ExplorerCardLoadedItemProps) {
   const label = useAtomValue(data.label)
@@ -127,8 +198,23 @@ const ExplorerCardLoadedItem = memo(function ExplorerCardLoadedItem({
       id={entry.id}
       textValue={label}
       className={styles.ExplorerCards.item()}
+      data-navigable={hasChildren && !unavailable ? true : undefined}
+      data-contains-matches={containsMatches || undefined}
+      data-unavailable={unavailable || undefined}
+      data-unselectable={unselectable || undefined}
+      onDoubleClick={
+        onDoubleClick ? event => onDoubleClick(entry, event) : undefined
+      }
     >
-      {showSelectionControls && <ExplorerCardCheckbox label={label} />}
+      {showSelectionControls && (
+        <ExplorerCardSelectionControl
+          containsMatches={containsMatches}
+          label={label}
+          matchingDescendantCount={matchingDescendantCount}
+          partialSelection={partialSelection}
+          unselectable={unselectable}
+        />
+      )}
       <AriaButton
         slot="drag"
         aria-label={`Drag ${label}`}
@@ -151,11 +237,21 @@ const ExplorerCardLoadedItem = memo(function ExplorerCardLoadedItem({
   )
 })
 
-interface ExplorerCardCheckboxProps {
+interface ExplorerCardSelectionControlProps {
+  containsMatches?: boolean
   label: string
+  matchingDescendantCount?: number
+  partialSelection?: boolean
+  unselectable?: boolean
 }
 
-function ExplorerCardCheckbox({label}: ExplorerCardCheckboxProps) {
+function ExplorerCardSelectionControl({
+  label,
+  partialSelection,
+  unselectable
+}: ExplorerCardSelectionControlProps) {
+  if (partialSelection) return <span className={styles.ExplorerCards.item.dot()} />
+  if (unselectable) return null
   return (
     <Checkbox
       slot="selection"
@@ -279,8 +375,17 @@ export function ExplorerCards({
   items,
   renderEmptyState
 }: ExplorerCardsProps) {
-  const [selected, setSelected] = useAtom(explorer.selection)
+  const selected = useAtomValue(explorer.selection)
+  const unavailableKeys = useAtomValue(explorer.unavailableKeys)
+  const unselectableKeys = useAtomValue(explorer.unselectableKeys)
+  const matchingDescendantKeys = useAtomValue(explorer.matchingDescendantKeys)
+  const matchingDescendantCounts = useAtomValue(
+    explorer.matchingDescendantCounts
+  )
+  const partialSelectionKeys = useAtomValue(explorer.partialSelectionKeys)
+  const setSelected = useSetAtom(explorer.setSelection)
   const performAction = useSetAtom(explorer.onAction)
+  const openEntry = useSetAtom(explorer.onOpen)
   const selectionMode = explorer.selectionMode
   const hasSelection = selectionMode !== 'none'
   const showSelectionControls = hasSelection && explorer.showSelectionControls
@@ -288,7 +393,18 @@ export function ExplorerCards({
     const entry = items.find(item => item.id === String(key))
     if (entry) performAction(entry)
   }
+  function onItemDoubleClick(
+    entry: DashboardEntry,
+    event: MouseEvent<HTMLElement>
+  ) {
+    event.preventDefault()
+    event.stopPropagation()
+    openEntry(entry)
+  }
   const onAction = explorer.hasRowAction ? onItemAction : undefined
+  const onDoubleClick = explorer.hasDoubleClickAction
+    ? onItemDoubleClick
+    : undefined
   return (
     <div className={styles.ExplorerCards.viewport()}>
       <Virtualizer layout={GridLayout} layoutOptions={cardLayoutOptions}>
@@ -309,6 +425,12 @@ export function ExplorerCards({
           {item => (
             <ExplorerCardItem
               entry={item}
+              containsMatches={matchingDescendantKeys.has(item.id)}
+              matchingDescendantCount={matchingDescendantCounts.get(item.id)}
+              partialSelection={partialSelectionKeys.has(item.id)}
+              unavailable={unavailableKeys.has(item.id)}
+              unselectable={unselectableKeys.has(item.id)}
+              onDoubleClick={onDoubleClick}
               showSelectionControls={showSelectionControls}
             />
           )}

@@ -1,7 +1,9 @@
-import {Icon} from '#/components.js'
+import {Checkbox, Icon, Surface} from '#/components.js'
 import {assert} from '#/core/util/Assert.js'
 import styler from '@alinea/styler'
 import {atom, useAtomValue, useSetAtom} from 'jotai'
+import {unwrap} from 'jotai/utils'
+import {useMemo} from 'react'
 import {
   isFileDropItem,
   useDragAndDrop
@@ -54,6 +56,65 @@ function SearchIdleState() {
   )
 }
 
+interface CurrentParentSelectionProps {
+  explorer: DashboardExplorer
+}
+
+function CurrentParentSelection({explorer}: CurrentParentSelectionProps) {
+  const current = useAtomValue(
+    useMemo(
+      () => unwrap(explorer.currentParentSelection, previous => previous),
+      [explorer]
+    )
+  )
+  const entry = current?.entry
+  const selectable = current?.selectable ?? false
+  const selection = useAtomValue(explorer.selection)
+  const setSelection = useSetAtom(explorer.setSelection)
+  const {data} = useAtomValue(entry?.data ?? emptyEntryData)
+  const icon = useAtomValue(data?.icon ?? fallbackEmptyIcon)
+  const label = useAtomValue(data?.label ?? emptyLabel)
+  if (!entry || !data) return null
+  const isSelected = selection === 'all' || selection.has(entry.id)
+  function onChange(selected: boolean) {
+    if (!entry) return
+    if (explorer.selectionMode === 'single') {
+      setSelection(selected ? new Set([entry.id]) : new Set())
+      return
+    }
+    const next = selection === 'all' ? new Set<string>() : new Set(selection)
+    if (selected) next.add(entry.id)
+    else next.delete(entry.id)
+    setSelection(next)
+  }
+  return (
+    <div className={styles.ExplorerList.currentSelection()}>
+      <Surface className={styles.ExplorerList.currentSelection.surface()}>
+        {selectable && (
+          <Checkbox
+            aria-label={`Select current entry ${label}`}
+            isSelected={isSelected}
+            onChange={onChange}
+            className={styles.ExplorerList.currentSelection.checkbox()}
+          />
+        )}
+        <Icon icon={icon} className={styles.ExplorerList.currentSelection.icon()} />
+        <span className={styles.ExplorerList.currentSelection.copy()}>
+          <span className={styles.ExplorerList.currentSelection.kicker()}>
+            {selectable ? 'Current location' : 'Current location only'}
+          </span>
+          <span className={styles.ExplorerList.currentSelection.label()}>
+            {label}
+          </span>
+        </span>
+      </Surface>
+    </div>
+  )
+}
+
+const emptyEntryData = atom({data: undefined})
+const emptyLabel = atom('')
+
 export interface ExplorerListProps {
   explorer: DashboardExplorer
 }
@@ -103,6 +164,7 @@ export function ExplorerList({explorer}: ExplorerListProps) {
   )
   return (
     <div className={styles.ExplorerList()}>
+      <CurrentParentSelection explorer={explorer} />
       {view === 'card' ? (
         <ExplorerCards
           dragAndDropHooks={dragAndDropHooks}

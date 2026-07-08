@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-release-notes",
+  "_type": "Page",
+  "_index": "a02",
+  "_root": "pages",
+  "title": "Release notes",
+  "path": "release-notes",
+  "summary": "Root selectable release page. Search token: changelog root.",
+  "category": "release",
+  "featured": false,
+  "wordCount": 920
+}

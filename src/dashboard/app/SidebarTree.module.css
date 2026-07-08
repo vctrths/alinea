@@ -114,6 +114,34 @@
   color: var(--alinea-fg-muted);
 }
 
+.SidebarTree-item.is-navigationLeaf[data-disabled],
+.SidebarTree-item.is-deadEnd[data-disabled] {
+  color: var(--alinea-fg-disabled);
+  background: color-mix(in srgb, var(--alinea-bg-muted) 44%, transparent);
+  cursor: default;
+}
+
+.SidebarTree-item.is-navigationLeaf.is-selectable[data-disabled] {
+  color: var(--alinea-fg);
+  background: transparent;
+}
+
+.SidebarTree-item.is-deadEnd[data-disabled] {
+  color: color-mix(in srgb, var(--alinea-fg-disabled) 82%, transparent);
+}
+
+.SidebarTree-item.is-navigationLeaf[data-disabled] [data-slot='icon'],
+.SidebarTree-item.is-navigationLeaf[data-disabled] [data-slot='label'],
+.SidebarTree-item.is-deadEnd[data-disabled] [data-slot='icon'],
+.SidebarTree-item.is-deadEnd[data-disabled] [data-slot='label'] {
+  opacity: 0.48;
+}
+
+.SidebarTree-item.is-navigationLeaf.is-selectable[data-disabled] [data-slot='icon'],
+.SidebarTree-item.is-navigationLeaf.is-selectable[data-disabled] [data-slot='label'] {
+  opacity: 1;
+}
+
 .SidebarTree-item.is-loading [data-slot='label'] {
   display: flex;
   align-items: center;

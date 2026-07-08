@@ -1,0 +1,8 @@
+{
+  "_id": "pick-folder-products",
+  "_type": "Folder",
+  "_index": "b00",
+  "_root": "pages",
+  "title": "Products",
+  "path": "products"
+}

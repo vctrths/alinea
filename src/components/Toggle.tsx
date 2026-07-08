@@ -10,10 +10,12 @@ import css from './Toggle.module.css'
 const styles = styler(css)
 
 export interface ToggleButtonGroupProps extends ToggleButtonGroupPrimitiveProps {
+  size?: 'default' | 'small'
   variant?: 'enclosed'
 }
 
 export function ToggleButtonGroup({
+  size = 'default',
   variant = 'enclosed',
   className,
   ...props
@@ -21,6 +23,7 @@ export function ToggleButtonGroup({
   return (
     <ToggleButtonGroupPrimitive
       data-variant={variant}
+      data-size={size === 'small' ? 'small' : undefined}
       {...props}
       className={renderProps =>
         styles.ToggleButtonGroup(
@@ -36,11 +39,14 @@ export function ToggleButtonGroup({
   )
 }
 
-export interface ToggleButtonProps extends ToggleButtonPrimitiveProps {}
+export interface ToggleButtonProps extends ToggleButtonPrimitiveProps {
+  size?: 'default' | 'small'
+}
 
-export function ToggleButton({className, ...props}: ToggleButtonProps) {
+export function ToggleButton({size, className, ...props}: ToggleButtonProps) {
   return (
     <ToggleButtonPrimitive
+      data-size={size === 'small' ? 'small' : undefined}
       {...props}
       className={renderProps =>
         styles.ToggleButton(

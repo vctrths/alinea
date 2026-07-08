@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-products-specs-sdk",
+  "_type": "Page",
+  "_index": "a01",
+  "_root": "pages",
+  "title": "SDK specification",
+  "path": "sdk",
+  "summary": "Deep selectable page two levels down. Search token: sdk spec.",
+  "category": "docs",
+  "featured": false,
+  "wordCount": 1180
+}

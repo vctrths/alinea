@@ -1,0 +1,8 @@
+{
+  "_id": "pick-media-folder-nested-empty",
+  "_type": "MediaLibrary",
+  "_index": "a00",
+  "_i18nId": "pick-media-folder-nested-empty",
+  "_root": "media",
+  "title": "Nested empty library"
+}

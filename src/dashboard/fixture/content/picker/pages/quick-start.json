@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-quick-start",
+  "_type": "Page",
+  "_index": "a01",
+  "_root": "pages",
+  "title": "Quick start",
+  "path": "quick-start",
+  "summary": "Root selectable getting started page. Search token: atlas quickstart.",
+  "category": "docs",
+  "featured": true,
+  "wordCount": 680
+}

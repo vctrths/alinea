@@ -100,6 +100,22 @@
     background: color-mix(in srgb, var(--alinea-blue-600) 9%, var(--alinea-bg));
   }
 
+  &[data-contains-matches] {
+    cursor: pointer;
+  }
+
+  &[data-unavailable]:not([data-contains-matches]) {
+    color: color-mix(in srgb, var(--alinea-fg) 38%, transparent);
+    background: color-mix(in srgb, var(--alinea-bg-muted) 54%, var(--alinea-bg));
+    cursor: not-allowed;
+  }
+
+  &[data-unavailable]:not([data-contains-matches]) .ExplorerTable-icon,
+  &[data-unavailable]:not([data-contains-matches]) .ExplorerTable-field-value,
+  &[data-unavailable]:not([data-contains-matches]) .ExplorerTable-field-label {
+    opacity: 0.55;
+  }
+
   &[data-focus-visible] {
     box-shadow: inset 0 0 0 2px var(--alinea-ring);
   }
@@ -153,6 +169,62 @@
   border: 0;
 }
 
+.ExplorerTable-cell-children {
+  box-sizing: border-box;
+  width: 112px;
+  height: 44px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-left: 1px solid var(--alinea-border);
+}
+
+.ExplorerTable-childrenAction {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  height: 44px;
+  padding: 0 10px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  color: var(--alinea-fg);
+  border: 0;
+  background: transparent;
+  font: inherit;
+  outline: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--alinea-bg-muted);
+  }
+
+  &:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--alinea-ring);
+  }
+}
+
+.ExplorerTable-childrenAction-icon {
+  flex: 0 0 auto;
+  color: color-mix(in srgb, var(--alinea-fg) 64%, transparent);
+  font-size: 16px;
+}
+
+.ExplorerTable-childrenAction-badge {
+  display: inline-flex;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 6px;
+  align-items: center;
+  justify-content: center;
+  color: var(--alinea-fg);
+  background: color-mix(in srgb, var(--alinea-blue-600) 18%, var(--alinea-bg));
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 16px;
+}
+
 .ExplorerTable-iconDrag {
   display: inline-flex;
   box-sizing: border-box;
@@ -190,6 +262,15 @@
 
 .ExplorerTable-checkbox {
   flex: 0 0 auto;
+}
+
+.ExplorerTable-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--alinea-accent);
+  flex-shrink: 0;
 }
 
 .ExplorerTable-titleAction {

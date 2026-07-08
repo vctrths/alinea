@@ -12,6 +12,10 @@
     flex-direction: column;
     align-items: stretch;
   }
+
+  &[data-size='small'] {
+    padding: 2px;
+  }
 }
 
 .ToggleButton {
@@ -57,6 +61,18 @@
   &[data-focused] {
     color: var(--alinea-fg);
     background-color: var(--alinea-muted-hover);
+  }
+
+  &[data-size='small'] {
+    min-height: 26px;
+    padding: 2px 4px;
+
+    svg,
+    [data-slot='icon'] {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
   }
 
   &[data-disabled] {

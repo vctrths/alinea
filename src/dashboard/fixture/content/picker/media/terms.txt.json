@@ -1,0 +1,14 @@
+{
+  "_id": "pick-media-terms",
+  "_type": "MediaFile",
+  "_index": "a03",
+  "_i18nId": "pick-media-terms",
+  "_root": "media",
+  "title": "terms",
+  "location": "/terms.txt",
+  "extension": ".txt",
+  "size": 12800,
+  "hash": "pickterms",
+  "width": null,
+  "height": null
+}

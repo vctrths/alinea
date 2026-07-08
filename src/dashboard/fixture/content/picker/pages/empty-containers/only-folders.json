@@ -1,0 +1,8 @@
+{
+  "_id": "pick-folder-empty-only-folders",
+  "_type": "Folder",
+  "_index": "a00",
+  "_root": "pages",
+  "title": "Only folders here",
+  "path": "only-folders"
+}

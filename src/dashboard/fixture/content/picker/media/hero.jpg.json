@@ -1,0 +1,14 @@
+{
+  "_id": "pick-media-hero",
+  "_type": "MediaFile",
+  "_index": "a02",
+  "_i18nId": "pick-media-hero",
+  "_root": "media",
+  "title": "hero",
+  "location": "/hero.jpg",
+  "extension": ".jpg",
+  "size": 860000,
+  "hash": "pickhero",
+  "width": 1600,
+  "height": 900
+}

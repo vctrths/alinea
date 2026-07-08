@@ -3,7 +3,7 @@ import {assert} from '#/core/util/Assert.js'
 import styler from '@alinea/styler'
 import {useAtom, useAtomValue, useSetAtom} from 'jotai'
 import {unwrap} from 'jotai/utils'
-import {type ComponentType, memo, useMemo} from 'react'
+import {type ComponentType, memo, useEffect, useMemo} from 'react'
 import {
   Collection,
   type Key,
@@ -43,18 +43,28 @@ interface SidebarTreeProps {
 
 export interface SidebarTreeExplorerProps {
   ariaLabel?: string
+  deadEndKeys?: Set<Key>
   disableDragAndDrop?: boolean
+  expandedKeys?: Set<Key>
+  matchingDescendantKeys?: Set<Key>
+  navigationStateActive?: boolean
   onRootPress?: () => void
   onSelectionChange?: (keys: Selection) => void
   root: DashboardRoot
   rootSelected?: boolean
+  selectableKeys?: Set<Key>
   selectedKeys?: Set<Key>
   selectedLocale?: DashboardLocaleSelection
   workspace: DashboardWorkspace
 }
 
 interface SidebarItemProps {
+  deadEndKeys?: Set<Key>
   item: DashboardEntry
+  matchingDescendantKeys?: Set<Key>
+  navigationOnly?: boolean
+  navigationStateActive?: boolean
+  selectableKeys?: Set<Key>
   tree: DashboardTree
 }
 
@@ -107,11 +117,29 @@ function affectedStatus(
   return ownStatus
 }
 
-const SidebarItem = memo(function SidebarItem({item, tree}: SidebarItemProps) {
+const SidebarItem = memo(function SidebarItem({
+  deadEndKeys,
+  item,
+  matchingDescendantKeys,
+  navigationOnly,
+  navigationStateActive,
+  selectableKeys,
+  tree
+}: SidebarItemProps) {
   const {pending, data} = useAtomValue(item.data)
   if (!data) return <SidebarLoadingItem item={item} pending={pending} />
   return (
-    <SidebarLoadedItem item={item} data={data} tree={tree} pending={pending} />
+    <SidebarLoadedItem
+      deadEndKeys={deadEndKeys}
+      item={item}
+      data={data}
+      matchingDescendantKeys={matchingDescendantKeys}
+      navigationOnly={navigationOnly}
+      navigationStateActive={navigationStateActive}
+      pending={pending}
+      selectableKeys={selectableKeys}
+      tree={tree}
+    />
   )
 })
 
@@ -147,17 +175,27 @@ function SidebarLoadingItem({item, pending}: SidebarLoadingItemProps) {
 }
 
 interface SidebarLoadedItemProps {
+  deadEndKeys?: Set<Key>
   item: DashboardEntry
   data: DashboardEntryData
+  matchingDescendantKeys?: Set<Key>
+  navigationOnly?: boolean
+  navigationStateActive?: boolean
   tree: DashboardTree
   pending: boolean
+  selectableKeys?: Set<Key>
 }
 
 const SidebarLoadedItem = memo(function SidebarLoadedItem({
+  deadEndKeys,
   item,
   data,
+  matchingDescendantKeys,
+  navigationOnly,
+  navigationStateActive,
   tree,
-  pending
+  pending,
+  selectableKeys
 }: SidebarLoadedItemProps) {
   const label = useAtomValue(data.label)
   const isExpanded = useAtomValue(tree.isExpanded(item))
@@ -167,9 +205,20 @@ const SidebarLoadedItem = memo(function SidebarLoadedItem({
   )
   const childItemsAtom = useMemo(() => tree.children(item), [item, tree])
   const childItems = useAtomValue(childItemsAtom)
+  const type = useAtomValue(data.type)
   let icon = useAtomValue(data.icon)
   const hasChildren = useAtomValue(data.hasChildren)
-  if (!icon) icon = hasChildren ? LucideFolder : LucideFile
+  const canNavigate = hasChildren || Boolean(type.contains?.length)
+  const containsMatches = matchingDescendantKeys?.has(item.id) ?? false
+  const selectable = selectableKeys?.has(item.id) ?? false
+  const navigationLeaf = Boolean(navigationOnly && !canNavigate)
+  const deadEnd = Boolean(
+    navigationOnly &&
+    navigationStateActive &&
+    (deadEndKeys?.has(item.id) ?? (canNavigate && !containsMatches))
+  )
+  const disabledForNavigation = navigationLeaf || deadEnd
+  if (!icon) icon = canNavigate ? LucideFolder : LucideFile
   const isLoadingChildren =
     hasChildren && isExpanded && childItems === undefined
   const displayStatus = sidebarStatus(status)
@@ -184,11 +233,15 @@ const SidebarLoadedItem = memo(function SidebarLoadedItem({
       title={label}
       hasChildItems={hasChildren}
       icon={icon}
+      isDisabled={disabledForNavigation}
       className={styles.SidebarTree.item({
         archived: isArchived,
+        deadEnd,
         unpublished: isUnpublished,
         untranslated: status.status === 'untranslated',
-        parentSelected: selectedAncestorStatus !== undefined
+        navigationLeaf,
+        parentSelected: selectedAncestorStatus !== undefined,
+        selectable
       })}
       suffix={
         isLoadingChildren || pending ? (
@@ -212,7 +265,17 @@ const SidebarLoadedItem = memo(function SidebarLoadedItem({
     >
       {isExpanded && childItems && (
         <Collection items={childItems}>
-          {child => <SidebarItem item={child} tree={tree} />}
+          {child => (
+            <SidebarItem
+              deadEndKeys={deadEndKeys}
+              item={child}
+              matchingDescendantKeys={matchingDescendantKeys}
+              navigationOnly={navigationOnly}
+              navigationStateActive={navigationStateActive}
+              selectableKeys={selectableKeys}
+              tree={tree}
+            />
+          )}
         </Collection>
       )}
     </TreeItem>
@@ -227,9 +290,14 @@ const treeLayoutOptions = {
 
 interface SidebarTreeBodyProps {
   ariaLabel?: string
+  deadEndKeys?: Set<Key>
   disableDragAndDrop?: boolean
+  matchingDescendantKeys?: Set<Key>
+  navigationOnly?: boolean
+  navigationStateActive?: boolean
   onSelectionChange?: (keys: Selection) => void
   root: DashboardRoot
+  selectableKeys?: Set<Key>
   selectedKeys?: Set<Key>
   tree: DashboardTree
 }
@@ -243,9 +311,14 @@ interface SidebarTreeContentProps extends SidebarTreeBodyProps {
 
 const SidebarTreeBody = memo(function SidebarTreeBody({
   ariaLabel = 'Content tree',
+  deadEndKeys,
   disableDragAndDrop = false,
+  matchingDescendantKeys,
+  navigationOnly,
+  navigationStateActive,
   onSelectionChange,
   root,
+  selectableKeys,
   selectedKeys,
   tree
 }: SidebarTreeBodyProps) {
@@ -287,7 +360,17 @@ const SidebarTreeBody = memo(function SidebarTreeBody({
             controlledSelection ? onSelectionChange : setTreeSelectedKeys
           }
         >
-          {item => <SidebarItem item={item} tree={tree} />}
+          {item => (
+            <SidebarItem
+              deadEndKeys={deadEndKeys}
+              item={item}
+              matchingDescendantKeys={matchingDescendantKeys}
+              navigationOnly={navigationOnly}
+              navigationStateActive={navigationStateActive}
+              selectableKeys={selectableKeys}
+              tree={tree}
+            />
+          )}
         </Tree>
       </Virtualizer>
     </div>
@@ -384,11 +467,16 @@ export const SidebarTree = memo(function SidebarTree({
 
 export const SidebarTreeExplorer = memo(function SidebarTreeExplorer({
   ariaLabel = 'Explorer folders',
+  deadEndKeys,
   disableDragAndDrop = true,
+  expandedKeys,
+  matchingDescendantKeys,
+  navigationStateActive,
   onRootPress,
   onSelectionChange,
   root,
   rootSelected = false,
+  selectableKeys,
   selectedKeys,
   selectedLocale,
   workspace
@@ -400,13 +488,30 @@ export const SidebarTreeExplorer = memo(function SidebarTreeExplorer({
       }),
     [workspace]
   )
+  const [treeExpandedKeys, setTreeExpandedKeys] = useAtom(tree.expandedKeys)
+  useEffect(() => {
+    if (!expandedKeys || expandedKeys.size === 0) return
+    const merged = new Set(treeExpandedKeys)
+    let changed = false
+    for (const key of expandedKeys) {
+      if (merged.has(key)) continue
+      merged.add(key)
+      changed = true
+    }
+    if (changed) setTreeExpandedKeys(merged)
+  }, [expandedKeys, setTreeExpandedKeys, treeExpandedKeys])
   return (
     <SidebarTreeContent
       ariaLabel={ariaLabel}
+      deadEndKeys={deadEndKeys}
       disableDragAndDrop={disableDragAndDrop}
+      matchingDescendantKeys={matchingDescendantKeys}
+      navigationOnly
+      navigationStateActive={navigationStateActive}
       onRootPress={onRootPress}
       onSelectionChange={onSelectionChange}
       root={root}
+      selectableKeys={selectableKeys}
       rootSelected={rootSelected}
       selectedKeys={selectedKeys}
       selectedLocale={selectedLocale}

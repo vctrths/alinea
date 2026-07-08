@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-overview",
+  "_type": "Page",
+  "_index": "a00",
+  "_root": "pages",
+  "title": "Picker overview",
+  "path": "overview",
+  "summary": "Root selectable page. Search token: atlas overview root result.",
+  "category": "docs",
+  "featured": true,
+  "wordCount": 410
+}

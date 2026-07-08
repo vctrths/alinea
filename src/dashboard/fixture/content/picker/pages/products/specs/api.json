@@ -1,0 +1,12 @@
+{
+  "_id": "pick-page-products-specs-api",
+  "_type": "Page",
+  "_index": "a00",
+  "_root": "pages",
+  "title": "API specification",
+  "path": "api",
+  "summary": "Deep selectable page two levels down. Search token: atlas api spec.",
+  "category": "docs",
+  "featured": true,
+  "wordCount": 1320
+}

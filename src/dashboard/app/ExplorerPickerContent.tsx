@@ -20,15 +20,20 @@ export function ExplorerPickerContent({
   const workspace = useAtomValue(explorer.workspace)
   const root = useAtomValue(explorer.root)
   const location = useAtomValue(explorer.location)
-  const setLocation = useSetAtom(explorer.location)
+  const parentMenu = useAtomValue(explorer.parentsMenu)
+  const navigationTreeState = useAtomValue(explorer.navigationTreeState)
+  const navigateTreeEntry = useSetAtom(explorer.onNavigateTreeEntry)
   const enableNavigation = options.enableNavigation ?? true
+  const showSidebarNavigation =
+    enableNavigation && explorer.showsSidebarNavigation
   const selectedKeys = location.parentId
     ? new Set<Key>([location.parentId])
     : new Set<Key>()
+  const expandedKeys = new Set<Key>(parentMenu.map(item => item.id))
 
   function onRootPress() {
     startTransition(() => {
-      setLocation(current => ({...current, parentId: undefined}))
+      navigateTreeEntry(undefined)
     })
   }
 
@@ -36,21 +41,23 @@ export function ExplorerPickerContent({
     if (keys === 'all') return
     const [selected] = keys
     startTransition(() => {
-      setLocation(current => ({
-        ...current,
-        parentId: selected ? String(selected) : undefined
-      }))
+      navigateTreeEntry(selected ? String(selected) : undefined)
     })
   }
 
   return (
     <ExplorerModalContent>
-      {enableNavigation && root && (
+      {showSidebarNavigation && root && (
         <ExplorerModalNavigation>
           <SidebarTreeExplorer
             ariaLabel={navigationLabel}
             root={root}
+            deadEndKeys={navigationTreeState.deadEndKeys}
+            expandedKeys={expandedKeys}
+            matchingDescendantKeys={navigationTreeState.matchingDescendantKeys}
+            navigationStateActive={navigationTreeState.active}
             rootSelected={!location.parentId}
+            selectableKeys={navigationTreeState.selectableKeys}
             selectedKeys={selectedKeys}
             selectedLocale={explorer.selectedLocale}
             workspace={workspace}
