@@ -23,7 +23,7 @@ import type {Filter} from '#/core/Filter.js'
 import type {Order} from '#/core/Graph.js'
 import {createId} from '#/core/Id.js'
 import {getRoot, getType, getWorkspace} from '#/core/Internal.js'
-import {createPreview} from '#/core/media/CreatePreview.js'
+import {createPreview} from '#/core/media/CreatePreview.browser.js'
 import {MediaFile, MediaLibrary} from '#/core/media/MediaTypes.js'
 import {assertUploadSize} from '#/core/media/UploadLimits.js'
 import type {PreviewMetadata} from '#/core/Preview.js'
@@ -429,6 +429,8 @@ export class Dashboard {
     })
   )
 
+  currentUser = unwrap(this.user)
+
   setUserRoles = atom(null, async (get, set, roles: Array<string>) => {
     const user = await get(this.user)
     if (!user) return
@@ -594,12 +596,20 @@ export class Dashboard {
     return typeof (client as Partial<LogoutConnection>).logout === 'function'
   })
 
+  #backendCapabilitiesResource = atom(async get => {
+    const client = get(this.client)
+    if (!client.capabilities)
+      throw new Error('Backend capabilities are not available')
+    return client.capabilities()
+  })
+
   #policyResource = atom(async get => {
     const user = await get(this.user)
-    if (!user) return Policy.ALLOW_NONE
+    if (!user?.roles) return Policy.ALLOW_NONE
     const db = get(this.db)
     get(this.sha) // subscribe to content changes
-    return db.createPolicy(user.roles)
+    const roles = get(this.config).roles ?? {}
+    return db.createPolicy(user.roles.filter(role => role in roles))
   })
 
   #policyState = atomWithPending(this.#policyResource)
@@ -607,6 +617,13 @@ export class Dashboard {
   policyReady = atom(get => {
     const [pending] = get(this.#policyState)
     return !pending
+  })
+
+  canManageMembers = atom(async get => {
+    const capabilities = await get(this.#backendCapabilitiesResource)
+    if (!capabilities.users) return false
+    const policy = await get(this.#policyResource)
+    return policy.canManageMembers()
   })
 
   #initialContentLoaded = atom(false)
@@ -661,17 +678,25 @@ export class Dashboard {
         .slice(1)
         .split('/')
         .slice(1) as Array<string | undefined>
+      const page = action === 'users' ? 'users' : 'entry'
       const [root, locale] = rootPart.split(':')
       return {
-        workspace,
-        root,
-        entry,
-        locale
+        page,
+        workspace: page === 'entry' ? workspace : undefined,
+        root: page === 'entry' ? root : undefined,
+        entry: page === 'entry' ? entry : undefined,
+        locale: page === 'entry' ? locale : undefined
       }
     },
     async (get, set, update: DashboardRoute) => {
       const focused = await get(this.focused)
       const confirm = async () => {
+        if (update.page === 'users') {
+          startTransition(() => {
+            set(this.#location, {hash: `#${nav.users()}`})
+          })
+          return
+        }
         const {workspace, root, entry, locale} = update
         if (entry) await get(this.entries(entry).routeReady)
         startTransition(() => {
@@ -689,6 +714,8 @@ export class Dashboard {
   )
 
   focused = atom((get): FocusedItem | Promise<FocusedItem> => {
+    const {page} = get(this.route)
+    if (page === 'users') return null
     const workspace = get(this.selectedWorkspace)
     const root = get(this.selectedRoot)
     const {root: routeRoot, entry} = get(this.route)
@@ -838,6 +865,8 @@ export class Dashboard {
 
   title = swr(
     atom(async get => {
+      const route = get(this.route)
+      if (route.page === 'users') return 'Users'
       const workspace = get(this.currentWorkspace)
       const workspaceLabel = workspace ? get(workspace.label) : 'Alinea'
       const focused = await get(this.focused)
@@ -1153,6 +1182,7 @@ export interface ExplorerOptions {
   hideResultsUntilSearch?: boolean
   location?: ExplorerLocation
   mode?: 'browse' | 'search'
+  pickChildren?: boolean
   selectedLocale?: string | null
   rootScope?: 'current' | 'workspace'
   selectionMode?: 'none' | 'single' | 'multiple'
@@ -1160,6 +1190,7 @@ export interface ExplorerOptions {
   showSelectionControls?: boolean
   initialSelection?: Array<string>
   searchDepth?: 'current' | 'all'
+  breadcrumbs?: boolean
   // initialSort?: ExplorerSort
   onAction?: WritableAtom<void, [entry: DashboardEntry], void>
   onConfirm?: (selection: Array<string>) => void
@@ -1243,6 +1274,10 @@ export class DashboardExplorer {
 
   get hasRowAction() {
     return Boolean(this.#options.onAction)
+  }
+
+  get breadcrumbs() {
+    return this.#options.breadcrumbs ?? false
   }
 
   onAction = atom(null, (get, set, entry: DashboardEntry) => {
@@ -1491,7 +1526,9 @@ export class DashboardExplorer {
     if (!root && !allRoots) return []
     const locale = allRoots ? undefined : get(this.selectedLocale)
     const searchAll = Boolean(searchStarted && this.searchDepth === 'all')
-    const flatList = Boolean(this.#options.condition) || searchAll
+    const flatList =
+      (Boolean(this.#options.condition) && !this.#options.pickChildren) ||
+      searchAll
     const policy = get(this.dashboard.policy)
     const children = await db.find({
       locale,
@@ -2378,7 +2415,7 @@ export class DashboardEntryData {
 
   parentsState = atomWithPending(this.#parents)
 
-  parents = swr(this.#parents)
+  parents = unwrap(this.#parents, prev => prev ?? [])
 
   #incomingReferences = atom(async get => {
     get(this.dashboard.revisions(this.id))
@@ -3039,6 +3076,8 @@ export class DashboardRoot {
 
   selected = atom(
     get => {
+      const route = get(this.workspace.dashboard.route)
+      if (route.page === 'users') return false
       if (
         get(this.workspace.dashboard.selectedWorkspace) !== this.workspace.key
       )
