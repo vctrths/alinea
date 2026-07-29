@@ -6,15 +6,16 @@ import {
   isFileDropItem,
   useDragAndDrop
 } from 'react-aria-components/useDragAndDrop'
+import {IcRoundSearch, LucideFile} from '../icons.js'
 import type {
   DashboardEntry,
   DashboardExplorer,
   DashboardRoot
 } from '../store.js'
-import {IcRoundSearch, LucideFile} from '../icons.js'
 import {ExplorerCards} from './ExplorerCards.js'
 import css from './ExplorerList.module.css'
 import {ExplorerTable} from './ExplorerTable.js'
+import {ExplorerTree} from './ExplorerTree/ExplorerTree.js'
 
 const styles = styler(css)
 const fallbackEmptyIcon = atom(LucideFile)
@@ -110,6 +111,8 @@ export function ExplorerList({explorer}: ExplorerListProps) {
           items={items}
           renderEmptyState={() => <EmptyResults root={root} />}
         />
+      ) : view === 'tree' ? (
+        <ExplorerTree explorer={explorer} items={items} />
       ) : (
         <ExplorerTable
           dragAndDropHooks={dragAndDropHooks}

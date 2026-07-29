@@ -1350,7 +1350,7 @@ export class DashboardExplorer {
       set(this.#selectedLocale, locale)
     }
   )
-  #selectedView = atom<'card' | 'row' | undefined>()
+  #selectedView = atom<'card' | 'row' | 'tree' | undefined>()
   view = atom(
     get => {
       const selected = get(this.#selectedView)
@@ -1358,7 +1358,7 @@ export class DashboardExplorer {
       const isMedia = get(this.isMedia)
       return isMedia ? 'card' : 'row'
     },
-    (get, set, next: 'card' | 'row') => {
+    (get, set, next: 'card' | 'row' | 'tree') => {
       set(this.#selectedView, next)
     }
   )

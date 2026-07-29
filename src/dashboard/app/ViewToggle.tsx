@@ -1,8 +1,12 @@
 import {ToggleButton, ToggleButtonGroup} from '#/components.js'
-import {IcOutlineGridView, IcOutlineList} from '#/dashboard/icons.js'
+import {
+  IcAlignCenter,
+  IcOutlineGridView,
+  IcOutlineList
+} from '#/dashboard/icons.js'
 import type {Key} from 'react-aria-components'
 
-export type ExplorerView = 'card' | 'row'
+export type ExplorerView = 'card' | 'row' | 'tree'
 
 interface ViewToggleProps {
   setView: (view: ExplorerView) => void
@@ -17,7 +21,8 @@ export function ViewToggle({setView, view}: ViewToggleProps) {
       disallowEmptySelection
       selectedKeys={[view]}
       onSelectionChange={(keys: Set<Key>) => {
-        setView(keys.has('card') ? 'card' : 'row')
+        const [selected] = keys
+        setView(selected as ExplorerView)
       }}
     >
       <ToggleButton id="card">
@@ -25,6 +30,9 @@ export function ViewToggle({setView, view}: ViewToggleProps) {
       </ToggleButton>
       <ToggleButton id="row">
         <IcOutlineList data-slot="icon" />
+      </ToggleButton>
+      <ToggleButton id="tree">
+        <IcAlignCenter data-slot="icon" />
       </ToggleButton>
     </ToggleButtonGroup>
   )
