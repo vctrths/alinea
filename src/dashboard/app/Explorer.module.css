@@ -33,6 +33,45 @@
   min-width: 0;
 }
 
+.ExplorerHeader-mainSwitcher {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-right: 8px;
+  margin-right: 4px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 1px;
+    background: var(--alinea-border);
+  }
+
+  button {
+    padding: 2px 6px;
+    font-size: 13px;
+    font-weight: 500;
+    gap: 4px;
+    min-height: 0;
+  }
+}
+
+.ExplorerHeader-mainRoot {
+  display: flex;
+  align-items: center;
+
+  button {
+    padding: 2px 6px;
+    font-size: 13px;
+    font-weight: 500;
+    gap: 4px;
+    min-height: 0;
+  }
+}
+
 .ExplorerHeader-title {
   margin: 0;
   font-size: 13px;
@@ -79,6 +118,7 @@
   display: flex;
   flex: 1;
   align-items: center;
+  gap: 4px;
 }
 
 .Explorer-search {

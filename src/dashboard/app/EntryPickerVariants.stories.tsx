@@ -13,6 +13,7 @@ import {ExplorerHeader} from './Explorer.js'
 import {ExplorerPickerContent} from './ExplorerPickerContent.js'
 import {ExplorerRacPickerContent} from './ExplorerRacPickerContent.js'
 import {ExplorerRacStandardPickerContent} from './ExplorerRacStandardPickerContent.js'
+import {ExplorerRacTreePickerContent} from './ExplorerRacTreePickerContent.js'
 import {ExplorerExperimentalToolbar} from './Explorer.js'
 import '#/theme.css'
 
@@ -179,7 +180,7 @@ function RacTableVariant({
   location = resultStoryLocation,
   options: optionOverrides,
   title
-}: Omit<VariantProps, 'preset'> & {content?: 'current' | 'standard'}) {
+}: Omit<VariantProps, 'preset'> & {content?: 'current' | 'standard' | 'tree'}) {
   const options = useMemo(
     (): ExplorerOptions => ({
       enableNavigation: false,
@@ -212,7 +213,9 @@ function RacTableVariant({
   const PickerContent =
     content === 'standard'
       ? ExplorerRacStandardPickerContent
-      : ExplorerRacPickerContent
+      : content === 'tree'
+        ? ExplorerRacTreePickerContent
+        : ExplorerRacPickerContent
   return (
     <section style={variantStyle}>
       <div style={variantHeaderStyle}>
@@ -233,7 +236,7 @@ function RacTableVariant({
 }
 
 function FullWidthRacTableVariant(
-  props: Omit<VariantProps, 'preset'> & {content?: 'current' | 'standard'}
+  props: Omit<VariantProps, 'preset'> & {content?: 'current' | 'standard' | 'tree'}
 ) {
   return (
     <DashboardScopeInternal dashboard={dashboard}>
@@ -266,7 +269,8 @@ const resultModeOptions = {
     options: {
       condition: pageOnlyCondition,
       conditionScope: 'rooted',
-      unavailableItems: 'hidden'
+      unavailableItems: 'hidden',
+      searchAllRoots: true
     } satisfies Partial<ExplorerOptions>
   },
   'rooted-disabled': {
@@ -309,19 +313,22 @@ function resultStory(
 function racResultStory(
   mode: ResultMode,
   options?: Partial<ExplorerOptions>,
-  content: 'current' | 'standard' = 'current'
+  content: 'current' | 'standard' | 'tree' = 'current'
 ) {
   const resultMode = resultModeOptions[mode]
   const isStandard = content === 'standard'
+  const isTree = content === 'tree'
+  const label = isTree ? 'RAC tree' : isStandard ? 'RAC standard table' : 'RAC table'
+  const descriptionSuffix = isTree
+    ? 'This version uses the React Aria Tree component with proper nested tree items for an accessible, hierarchical entry picker without table columns.'
+    : isStandard
+      ? 'This version uses RAC-standard nested rows and slot chevrons so React Aria owns the tree table semantics.'
+      : 'This version uses Alinea RAC table components as one expandable hierarchy: folders expand inline, children are indented underneath, and no sidebar navigation is used.'
   return (
     <FullWidthRacTableVariant
-      title={`${isStandard ? 'RAC standard table' : 'RAC table'}: ${resultMode.label}`}
+      title={`${label}: ${resultMode.label}`}
       location={resultStoryLocation}
-      description={`${resultMode.description} ${
-        isStandard
-          ? 'This version uses RAC-standard nested rows and slot chevrons so React Aria owns the tree table semantics.'
-          : 'This version uses Alinea RAC table components as one expandable hierarchy: folders expand inline, children are indented underneath, and no sidebar navigation is used.'
-      }`}
+      description={`${resultMode.description} ${descriptionSuffix}`}
       options={{...resultMode.options, ...options}}
       content={content}
     />
@@ -475,6 +482,33 @@ export function RacStandardTableRootedHidden() {
 
 export function RacStandardTableRootedDisabled() {
   return racResultStory('rooted-disabled', undefined, 'standard')
+}
+
+export function RacTree() {
+  return (
+    <FullWidthRacTableVariant
+      title="RAC tree"
+      description="RAC tree component prototype: uses React Aria's Tree component with proper nested tree items."
+      content="tree"
+      options={{searchDepth: 'all'}}
+    />
+  )
+}
+
+export function RacTreeFlat() {
+  return racResultStory('flat', undefined, 'tree')
+}
+
+export function RacTreeRootedHidden() {
+  return racResultStory('rooted-hidden', {searchDepth: 'all'}, 'tree')
+}
+
+export function RacTreeRootedDisabled() {
+  return racResultStory('rooted-disabled', undefined, 'tree')
+}
+
+export function RacTreeRootedHiddenCurrent() {
+  return racResultStory('rooted-hidden', {conditionScope: 'current'}, 'tree')
 }
 
 export function MediaFilesFlat() {

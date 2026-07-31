@@ -2,6 +2,8 @@ import {Badge} from '#/dashboard/app/Badge.js'
 import {
   Button,
   Icon,
+  Menu,
+  MenuItem,
   Popover,
   SearchField,
   Checkbox,
@@ -14,6 +16,7 @@ import {unwrap} from 'jotai/utils'
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   startTransition,
   useTransition,
@@ -29,13 +32,16 @@ import {
   IcRoundFilterList,
   IcRoundUploadFile,
   IcRoundCheckBox,
-  IcRoundCheckBoxOutlineBlank
+  IcRoundCheckBoxOutlineBlank,
+  IcRoundUnfoldMore
 } from '../icons.js'
 import type {
   DashboardEntry,
   DashboardEntryData,
-  DashboardRoot
+  DashboardRoot,
+  DashboardWorkspace
 } from '../store.js'
+
 import {
   DashboardExplorer,
   ExplorerSort,
@@ -353,6 +359,62 @@ function ExplorerLoadedBreadcrumbNavigation({
   )
 }
 
+function ExplorerRootMenuItem({root}: {root: DashboardRoot}) {
+  const label = useAtomValue(root.label)
+  return <MenuItem id={root.key} textValue={label}>{label}</MenuItem>
+}
+
+function ExplorerRootSwitcher({explorer}: {explorer: DashboardExplorer}) {
+  const location = useAtomValue(explorer.location)
+  const currentWorkspace = useAtomValue(explorer.workspace)
+  const rootKeys = useAtomValue(currentWorkspace.roots)
+  const setRoot = useSetAtom(explorer.root)
+  const searchAllRoots = useAtomValue(explorer.searchAllRoots)
+  const setSearchAllRoots = useSetAtom(explorer.searchAllRoots)
+  const search = useAtomValue(explorer.search)
+  const isSearching = Boolean(search.trim())
+  const currentRoot = currentWorkspace.root(location.root ?? rootKeys[0] ?? '')
+  const rootLabel = useAtomValue(currentRoot.label)
+  const wasSearching = useRef(isSearching)
+  useEffect(() => {
+    if (wasSearching.current && !isSearching && searchAllRoots)
+      setSearchAllRoots(false)
+    wasSearching.current = isSearching
+  }, [isSearching])
+  if (rootKeys.length <= 1) return null
+  return (
+    <Menu
+      label={
+        <Button appearance={searchAllRoots ? 'active' : 'plain'} aria-label={rootLabel}>
+          <span>{searchAllRoots ? 'All roots' : rootLabel}</span>
+          <Icon icon={IcRoundUnfoldMore} fontSize={12} style={{marginLeft: 4}} />
+        </Button>
+      }
+      aria-label="Root"
+      selectionMode="single"
+      selectedKeys={searchAllRoots ? ['__all'] : [location.root ?? rootKeys[0] ?? '']}
+      onAction={key => {
+        if (key === '__all') {
+          setSearchAllRoots(true)
+        } else {
+          setSearchAllRoots(false)
+          setRoot(String(key))
+        }
+      }}
+      popoverProps={{placement: 'bottom start'}}
+    >
+      {isSearching && rootKeys.length > 1 && (
+        <MenuItem id="__all" textValue="All roots">
+          All roots
+        </MenuItem>
+      )}
+      {rootKeys.map(key => (
+        <ExplorerRootMenuItem key={key} root={currentWorkspace.root(key)} />
+      ))}
+    </Menu>
+  )
+}
+
 function ExplorerHeaderMain({
   explorer,
   titleControls
@@ -368,17 +430,21 @@ function ExplorerHeaderMain({
       />
     )
   }
-  if (root && (titleControls || explorer.showsBreadcrumbNavigation)) {
-    return (
+  if (!root) return null
+  return (
       <div className={styles.ExplorerHeader.main()}>
+        <div className={styles.ExplorerHeader.mainSwitcher()}>
+          <ExplorerWorkspaceSwitcher explorer={explorer} />
+        </div>
+        <div className={styles.ExplorerHeader.mainRoot()}>
+          <ExplorerRootSwitcher explorer={explorer} />
+        </div>
         {explorer.showsBreadcrumbNavigation && (
           <ExplorerBreadcrumbNavigation explorer={explorer} />
         )}
         {titleControls}
       </div>
-    )
-  }
-  return null
+  )
 }
 
 function ExplorerHeaderParentMain({
@@ -404,6 +470,7 @@ interface ExplorerToolbarProps {
 const sortingOptions: Array<{id: ExplorerSortBy; label: string}> = [
   {id: 'index', label: 'Index'},
   {id: 'title', label: 'Title'},
+  {id: 'depth', label: 'Depth'},
   {id: 'id', label: 'Creation date'},
   {id: 'size', label: 'Size'}
 ]
@@ -430,46 +497,20 @@ interface ExplorerExperimentalControlsProps {
   clearFilters: () => void
 }
 
-function ExplorerControlsButton({
-  isMedia,
-  selectedFilters,
-  sort,
-  typeFilterOptions,
-  setSort,
-  toggleFilter,
-  clearFilters
-}: ExplorerControlsProps) {
+function ExplorerControlsButton(props: ExplorerControlsProps) {
   return (
     <DialogTrigger>
       <Button size="icon-nav" appearance="outline" icon={IcRoundFilterList} />
       <Popover placement="bottom left">
-        <ExplorerControlsPopover
-          isMedia={isMedia}
-          selectedFilters={selectedFilters}
-          sort={sort}
-          typeFilterOptions={typeFilterOptions}
-          setSort={setSort}
-          toggleFilter={toggleFilter}
-          clearFilters={clearFilters}
-        />
+        <ExplorerControlsPopover {...props} />
       </Popover>
     </DialogTrigger>
   )
 }
 
-function ExplorerExperimentalControlsButton({
-  isMedia,
-  excludedTypes,
-  includedTypes,
-  sort,
-  typeFilterOptions,
-  setSort,
-  toggleExclude,
-  includeOnly,
-  clearFilters
-}: ExplorerExperimentalControlsProps) {
-  const includedCount = typeFilterOptions.length - (excludedTypes?.length ?? 0)
-  const showBadge = (excludedTypes?.length ?? 0) > 0
+function ExplorerExperimentalControlsButton(props: ExplorerExperimentalControlsProps) {
+  const includedCount = props.typeFilterOptions.length - (props.excludedTypes?.length ?? 0)
+  const showBadge = (props.excludedTypes?.length ?? 0) > 0
   return (
     <DialogTrigger>
       <Button size="small" appearance="outline" style={{height: 32}}>
@@ -481,17 +522,7 @@ function ExplorerExperimentalControlsButton({
         <Icon icon={IcRoundFilterList} />
       </Button>
       <Popover placement="bottom left">
-        <ExplorerExperimentalControlsPopover
-          isMedia={isMedia}
-          excludedTypes={excludedTypes}
-          includedTypes={includedTypes}
-          sort={sort}
-          typeFilterOptions={typeFilterOptions}
-          setSort={setSort}
-          toggleExclude={toggleExclude}
-          includeOnly={includeOnly}
-          clearFilters={clearFilters}
-        />
+        <ExplorerExperimentalControlsPopover {...props} />
       </Popover>
     </DialogTrigger>
   )
@@ -564,6 +595,7 @@ function ExplorerControlsPopover({
 
 // Experimental: Exclusion-model type filter UI (for stories/testing only)
 interface ExplorerExperimentalControlsProps {
+  explorer: DashboardExplorer
   isMedia: boolean | undefined
   excludedTypes: Array<string> | undefined
   includedTypes: Array<string> | undefined
@@ -576,6 +608,7 @@ interface ExplorerExperimentalControlsProps {
 }
 
 function ExplorerExperimentalControlsPopover({
+  explorer,
   isMedia,
   excludedTypes,
   includedTypes,
@@ -702,6 +735,7 @@ export function ExplorerExperimentalToolbar({explorer}: ExplorerToolbarProps) {
         </MutationQueueStatus>
       )}
       <ExplorerExperimentalControlsButton
+        explorer={explorer}
         isMedia={isMedia}
         excludedTypes={excludedTypes}
         includedTypes={includedTypes}
@@ -783,6 +817,39 @@ function ExplorerToolbar({explorer}: ExplorerToolbarProps) {
         )}
       </div>
     </div>
+  )
+}
+
+function ExplorerWorkspaceMenuItem({workspace}: {workspace: DashboardWorkspace}) {
+  const label = useAtomValue(workspace.label)
+  return <MenuItem id={workspace.key} textValue={label}>{label}</MenuItem>
+}
+
+function ExplorerWorkspaceSwitcher({explorer}: {explorer: DashboardExplorer}) {
+  const location = useAtomValue(explorer.location)
+  const workspaceKeys = useAtomValue(explorer.dashboard.workspaces)
+  const setWorkspace = useSetAtom(explorer.workspace)
+  const current = explorer.dashboard.workspace(location.workspace)
+  const label = useAtomValue(current.label)
+  if (workspaceKeys.length <= 1) return null
+  return (
+    <Menu
+      label={
+        <Button appearance="plain" aria-label={label}>
+          <span>{label}</span>
+          <Icon icon={IcRoundUnfoldMore} fontSize={12} />
+        </Button>
+      }
+      aria-label="Workspace"
+      selectionMode="single"
+      selectedKeys={[location.workspace]}
+      onAction={key => setWorkspace(String(key))}
+      popoverProps={{placement: 'bottom start'}}
+    >
+      {workspaceKeys.map(key => (
+        <ExplorerWorkspaceMenuItem key={key} workspace={explorer.dashboard.workspace(key)} />
+      ))}
+    </Menu>
   )
 }
 

@@ -1165,7 +1165,7 @@ export interface DashboardMenuItem {
   label: string
 }
 
-export type ExplorerSortBy = 'title' | 'path' | 'size' | 'id' | 'index'
+export type ExplorerSortBy = 'title' | 'path' | 'size' | 'id' | 'index' | 'depth'
 export type ExplorerSortDirections = 'asc' | 'desc'
 export type ExplorerSort = {
   sortBy: ExplorerSortBy
@@ -1307,7 +1307,7 @@ export interface ExplorerOptions {
   searchDepth?: 'current' | 'all'
   unavailableItems?: ExplorerAvailabilityMode
   breadcrumbs?: boolean
-  // initialSort?: ExplorerSort
+  searchAllRoots?: boolean
   onAction?: WritableAtom<void, [entry: DashboardEntry], void>
   onConfirm?: (selection: Array<string>) => void
 }
@@ -1737,6 +1737,19 @@ export class DashboardExplorer {
       set(this.typeFilters, filterBy)
     }
   )
+  #searchAllRoots = atom<boolean | undefined>(undefined)
+  searchAllRoots = atom(
+    get => {
+      const manual = get(this.#searchAllRoots)
+      if (manual !== undefined) return manual
+      const search = get(this.search)
+      if (this.#options.searchAllRoots && search.trim()) return true
+      return false
+    },
+    (_get, set, next: boolean) => {
+      set(this.#searchAllRoots, next)
+    }
+  )
 
   location = atom(
     get => get(this.#location),
@@ -1899,7 +1912,8 @@ export class DashboardExplorer {
       path: Entry.path,
       size: MediaFile.size,
       id: Entry.id,
-      index: Entry.index
+      index: Entry.index,
+      depth: Entry.id
     }
     const fieldToSort = fieldMap[sort.sortBy]
     const orderBy = {
@@ -1909,13 +1923,16 @@ export class DashboardExplorer {
     if (this.hideResultsUntilSearch && !searchStarted)
       return emptyExplorerItemRowsState()
     const allRoots = this.rootScope === 'workspace'
-    if (!root && !allRoots) return emptyExplorerItemRowsState()
-    const locale = allRoots ? undefined : get(this.selectedLocale)
+    const searchAllRoots = get(this.searchAllRoots)
     const searchAll = Boolean(searchStarted && this.searchDepth === 'all')
     const hasExperimentalFilters =
       get(this.#experimentalExcludedTypes).length > 0
     const flatList =
-      this.conditionScope === 'flat' || searchAll || hasExperimentalFilters
+      this.conditionScope === 'flat' || searchAll || hasExperimentalFilters || (searchStarted && searchAllRoots)
+    const searchAcrossRoots = flatList && searchAllRoots
+    const effectiveAllRoots = allRoots || searchAcrossRoots
+    if (!root && !effectiveAllRoots) return emptyExplorerItemRowsState()
+    const locale = effectiveAllRoots ? undefined : get(this.selectedLocale)
     const parentId = flatList ? undefined : (location.parentId ?? null)
     const select = {
       id: Entry.id,
@@ -1929,7 +1946,7 @@ export class DashboardExplorer {
       locale,
       search: searchStarted ? search : undefined,
       workspace: location.workspace,
-      root: allRoots ? undefined : location.root,
+      root: effectiveAllRoots ? undefined : location.root,
       parentId,
       select,
       orderBy,

@@ -211,6 +211,12 @@ const picker = Config.workspace('Picker test matrix', {
       contains: ['Page', 'Folder', 'Resource'],
       openByDefault: true
     }),
+    docs: Config.root('Documentation', {
+      contains: ['Page', 'Folder']
+    }),
+    blog: Config.root('Blog', {
+      contains: ['Page', 'Folder']
+    }),
     media: Config.media()
   }
 })

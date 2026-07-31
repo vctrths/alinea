@@ -1,0 +1,109 @@
+.RacPicker {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
+  overflow: hidden;
+}
+
+.RacPicker-main {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--alinea-bg);
+}
+
+.RacPickerTree {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  flex: 1;
+  flex-direction: column;
+  padding: 12px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--alinea-border) transparent;
+}
+
+.RacPickerTree-tree {
+  min-width: 720px;
+  max-width: none !important;
+  overflow: visible !important;
+}
+
+.RacPickerTree-item {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  padding-right: 12px !important;
+  height: auto !important;
+  min-height: 52px !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid var(--alinea-border);
+
+  &:hover,
+  &[data-hovered] {
+    background: var(--alinea-bg-muted);
+  }
+
+  &[data-unavailable] {
+    color: color-mix(in srgb, var(--alinea-fg-disabled) 72%, transparent);
+    background: color-mix(in srgb, var(--alinea-bg-muted) 82%, var(--alinea-bg));
+  }
+
+  [slot='selection'] {
+    gap: 0;
+  }
+
+  &:not([data-selectable]) [slot='selection'] {
+    visibility: hidden;
+  }
+}
+
+.RacPickerTree-treeItemLabel {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.2;
+}
+
+.RacPickerTree-treeItemTitle {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.RacPickerTree-path {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 400;
+  color: var(--alinea-fg-muted);
+  overflow: hidden;
+}
+
+.RacPickerTree-path-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+
+.RacPickerTree-path-separator {
+  margin: 0 2px;
+  color: var(--alinea-border);
+  flex-shrink: 0;
+}
+
+

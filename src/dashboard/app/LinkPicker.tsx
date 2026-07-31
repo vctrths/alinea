@@ -53,6 +53,7 @@ function LinkPickerModalContent({options}: ExplorerModalProps) {
     dashboard.explore(location, {
       ...options,
       searchDepth: 'all',
+      searchAllRoots: options.searchAllRoots ?? true,
       onConfirm(selection) {
         options.onConfirm?.(selection)
         modal.close()
