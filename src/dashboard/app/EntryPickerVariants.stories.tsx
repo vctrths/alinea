@@ -236,7 +236,9 @@ function RacTableVariant({
 }
 
 function FullWidthRacTableVariant(
-  props: Omit<VariantProps, 'preset'> & {content?: 'current' | 'standard' | 'tree'}
+  props: Omit<VariantProps, 'preset'> & {
+    content?: 'current' | 'standard' | 'tree'
+  }
 ) {
   return (
     <DashboardScopeInternal dashboard={dashboard}>
@@ -318,7 +320,11 @@ function racResultStory(
   const resultMode = resultModeOptions[mode]
   const isStandard = content === 'standard'
   const isTree = content === 'tree'
-  const label = isTree ? 'RAC tree' : isStandard ? 'RAC standard table' : 'RAC table'
+  const label = isTree
+    ? 'RAC tree'
+    : isStandard
+      ? 'RAC standard table'
+      : 'RAC table'
   const descriptionSuffix = isTree
     ? 'This version uses the React Aria Tree component with proper nested tree items for an accessible, hierarchical entry picker without table columns.'
     : isStandard

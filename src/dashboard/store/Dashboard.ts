@@ -1165,7 +1165,13 @@ export interface DashboardMenuItem {
   label: string
 }
 
-export type ExplorerSortBy = 'title' | 'path' | 'size' | 'id' | 'index' | 'depth'
+export type ExplorerSortBy =
+  | 'title'
+  | 'path'
+  | 'size'
+  | 'id'
+  | 'index'
+  | 'depth'
 export type ExplorerSortDirections = 'asc' | 'desc'
 export type ExplorerSort = {
   sortBy: ExplorerSortBy
@@ -1928,7 +1934,10 @@ export class DashboardExplorer {
     const hasExperimentalFilters =
       get(this.#experimentalExcludedTypes).length > 0
     const flatList =
-      this.conditionScope === 'flat' || searchAll || hasExperimentalFilters || (searchStarted && searchAllRoots)
+      this.conditionScope === 'flat' ||
+      searchAll ||
+      hasExperimentalFilters ||
+      (searchStarted && searchAllRoots)
     const searchAcrossRoots = flatList && searchAllRoots
     const effectiveAllRoots = allRoots || searchAcrossRoots
     if (!root && !effectiveAllRoots) return emptyExplorerItemRowsState()

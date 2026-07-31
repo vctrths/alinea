@@ -257,8 +257,8 @@
 }
 
 .RacPickerTable-row[data-unselectable='true']:not([data-unavailable='true']):not(
-    [data-expandable='true']
-  ) {
+  [data-expandable='true']
+) {
   background: color-mix(in srgb, var(--alinea-bg-muted) 25%, var(--alinea-bg));
   cursor: default;
 }

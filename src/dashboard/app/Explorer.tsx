@@ -361,7 +361,11 @@ function ExplorerLoadedBreadcrumbNavigation({
 
 function ExplorerRootMenuItem({root}: {root: DashboardRoot}) {
   const label = useAtomValue(root.label)
-  return <MenuItem id={root.key} textValue={label}>{label}</MenuItem>
+  return (
+    <MenuItem id={root.key} textValue={label}>
+      {label}
+    </MenuItem>
+  )
 }
 
 function ExplorerRootSwitcher({explorer}: {explorer: DashboardExplorer}) {
@@ -385,14 +389,23 @@ function ExplorerRootSwitcher({explorer}: {explorer: DashboardExplorer}) {
   return (
     <Menu
       label={
-        <Button appearance={searchAllRoots ? 'active' : 'plain'} aria-label={rootLabel}>
+        <Button
+          appearance={searchAllRoots ? 'active' : 'plain'}
+          aria-label={rootLabel}
+        >
           <span>{searchAllRoots ? 'All roots' : rootLabel}</span>
-          <Icon icon={IcRoundUnfoldMore} fontSize={12} style={{marginLeft: 4}} />
+          <Icon
+            icon={IcRoundUnfoldMore}
+            fontSize={12}
+            style={{marginLeft: 4}}
+          />
         </Button>
       }
       aria-label="Root"
       selectionMode="single"
-      selectedKeys={searchAllRoots ? ['__all'] : [location.root ?? rootKeys[0] ?? '']}
+      selectedKeys={
+        searchAllRoots ? ['__all'] : [location.root ?? rootKeys[0] ?? '']
+      }
       onAction={key => {
         if (key === '__all') {
           setSearchAllRoots(true)
@@ -432,18 +445,18 @@ function ExplorerHeaderMain({
   }
   if (!root) return null
   return (
-      <div className={styles.ExplorerHeader.main()}>
-        <div className={styles.ExplorerHeader.mainSwitcher()}>
-          <ExplorerWorkspaceSwitcher explorer={explorer} />
-        </div>
-        <div className={styles.ExplorerHeader.mainRoot()}>
-          <ExplorerRootSwitcher explorer={explorer} />
-        </div>
-        {explorer.showsBreadcrumbNavigation && (
-          <ExplorerBreadcrumbNavigation explorer={explorer} />
-        )}
-        {titleControls}
+    <div className={styles.ExplorerHeader.main()}>
+      <div className={styles.ExplorerHeader.mainSwitcher()}>
+        <ExplorerWorkspaceSwitcher explorer={explorer} />
       </div>
+      <div className={styles.ExplorerHeader.mainRoot()}>
+        <ExplorerRootSwitcher explorer={explorer} />
+      </div>
+      {explorer.showsBreadcrumbNavigation && (
+        <ExplorerBreadcrumbNavigation explorer={explorer} />
+      )}
+      {titleControls}
+    </div>
   )
 }
 
@@ -508,8 +521,11 @@ function ExplorerControlsButton(props: ExplorerControlsProps) {
   )
 }
 
-function ExplorerExperimentalControlsButton(props: ExplorerExperimentalControlsProps) {
-  const includedCount = props.typeFilterOptions.length - (props.excludedTypes?.length ?? 0)
+function ExplorerExperimentalControlsButton(
+  props: ExplorerExperimentalControlsProps
+) {
+  const includedCount =
+    props.typeFilterOptions.length - (props.excludedTypes?.length ?? 0)
   const showBadge = (props.excludedTypes?.length ?? 0) > 0
   return (
     <DialogTrigger>
@@ -820,9 +836,17 @@ function ExplorerToolbar({explorer}: ExplorerToolbarProps) {
   )
 }
 
-function ExplorerWorkspaceMenuItem({workspace}: {workspace: DashboardWorkspace}) {
+function ExplorerWorkspaceMenuItem({
+  workspace
+}: {
+  workspace: DashboardWorkspace
+}) {
   const label = useAtomValue(workspace.label)
-  return <MenuItem id={workspace.key} textValue={label}>{label}</MenuItem>
+  return (
+    <MenuItem id={workspace.key} textValue={label}>
+      {label}
+    </MenuItem>
+  )
 }
 
 function ExplorerWorkspaceSwitcher({explorer}: {explorer: DashboardExplorer}) {
@@ -847,7 +871,10 @@ function ExplorerWorkspaceSwitcher({explorer}: {explorer: DashboardExplorer}) {
       popoverProps={{placement: 'bottom start'}}
     >
       {workspaceKeys.map(key => (
-        <ExplorerWorkspaceMenuItem key={key} workspace={explorer.dashboard.workspace(key)} />
+        <ExplorerWorkspaceMenuItem
+          key={key}
+          workspace={explorer.dashboard.workspace(key)}
+        />
       ))}
     </Menu>
   )
